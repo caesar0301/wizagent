@@ -14,13 +14,6 @@ from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
-from cogents_wiz.bu.agent.cloud_events import (
-	CreateAgentOutputFileEvent,
-	CreateAgentSessionEvent,
-	CreateAgentStepEvent,
-	CreateAgentTaskEvent,
-	UpdateAgentTaskEvent,
-)
 from cogents_wiz.bu.agent.message_manager.utils import save_conversation
 from cogents_wiz.bu.llm.base import BaseChatModel
 from cogents_wiz.bu.llm.messages import BaseMessage, ContentPartImageParam, ContentPartTextParam, UserMessage
@@ -60,9 +53,6 @@ from cogents_wiz.bu.config import CONFIG
 from cogents_wiz.bu.dom.views import DOMInteractedElement
 from cogents_wiz.bu.filesystem.file_system import FileSystem
 from cogents_wiz.bu.observability import observe, observe_debug
-from cogents_wiz.bu.sync import CloudSync
-from cogents_wiz.bu.telemetry.service import ProductTelemetry
-from cogents_wiz.bu.telemetry.views import AgentTelemetryEvent
 from cogents_wiz.bu.tools.registry.views import ActionModel
 from cogents_wiz.bu.tools.service import Tools
 from cogents_wiz.bu.utils import (
@@ -137,7 +127,6 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		# Initial agent run parameters
 		sensitive_data: dict[str, str | dict[str, str]] | None = None,
 		initial_actions: list[dict[str, dict[str, Any]]] | None = None,
-		# Cloud Callbacks
 		register_new_step_callback: (
 			Callable[['BrowserStateSummary', 'AgentOutput', int], None]  # Sync callback
 			| Callable[['BrowserStateSummary', 'AgentOutput', int], Awaitable[None]]  # Async callback
@@ -169,7 +158,6 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		source: str | None = None,
 		file_system_path: str | None = None,
 		task_id: str | None = None,
-		cloud_sync: CloudSync | None = None,
 		calculate_cost: bool = False,
 		display_files_in_done_text: bool = True,
 		include_tool_call_examples: bool = False,
@@ -405,20 +393,12 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		self.register_done_callback = register_done_callback
 		self.register_external_agent_status_raise_error_callback = register_external_agent_status_raise_error_callback
 
-		# Telemetry
-		self.telemetry = ProductTelemetry()
 
 		# Event bus with WAL persistence
 		# Default to ~/.config/browseruse/events/{agent_session_id}.jsonl
 		# wal_path = CONFIG.BROWSER_USE_CONFIG_DIR / 'events' / f'{self.session_id}.jsonl'
 		self.eventbus = EventBus(name=f'Agent_{str(self.id)[-4:]}')
 
-		# Cloud sync service
-		self.enable_cloud_sync = CONFIG.BROWSER_USE_CLOUD_SYNC
-		if self.enable_cloud_sync or cloud_sync is not None:
-			self.cloud_sync = cloud_sync or CloudSync()
-			# Register cloud sync handler
-			self.eventbus.on('*', self.cloud_sync.handle_event)
 
 		if self.settings.save_conversation_path:
 			self.settings.save_conversation_path = Path(self.settings.save_conversation_path).expanduser().resolve()
@@ -600,9 +580,6 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		self.state.follow_up_task = True
 		self.eventbus = EventBus(name=f'Agent_{str(self.id)[-self.state.n_steps :]}')
 
-		# Re-register cloud sync handler if it exists (if not disabled)
-		if hasattr(self, 'cloud_sync') and self.cloud_sync and self.enable_cloud_sync:
-			self.eventbus.on('*', self.cloud_sync.handle_event)
 
 	async def _raise_if_stopped_or_paused(self) -> None:
 		"""Utility function that raises an InterruptedError if the agent is stopped or paused."""
@@ -653,7 +630,7 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		self.logger.debug('📸 Requesting browser state with include_screenshot=True')
 		browser_state_summary = await self.browser_session.get_browser_state_summary(
 			cache_clickable_elements_hashes=True,
-			include_screenshot=True,  # always capture even if use_vision=False so that cloud sync is useful (it's fast now anyway)
+			include_screenshot=True,
 			include_recent_events=self.include_recent_events,
 		)
 		if browser_state_summary.screenshot:
@@ -825,15 +802,6 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 					action_dict = action.model_dump() if hasattr(action, 'model_dump') else {}
 					actions_data.append(action_dict)
 
-			# Emit CreateAgentStepEvent
-			step_event = CreateAgentStepEvent.from_agent_step(
-				self,
-				self.state.last_model_output,
-				self.state.last_result,
-				actions_data,
-				browser_state_summary,
-			)
-			self.eventbus.dispatch(step_event)
 
 		# Increment step counter after step is fully completed
 		self.state.n_steps += 1
@@ -1079,7 +1047,7 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		)
 
 	def _log_agent_event(self, max_steps: int, agent_run_error: str | None = None) -> None:
-		"""Sent the agent event for this run to telemetry"""
+		"""Log the agent event for this run"""
 
 		token_summary = self.token_cost_service.get_usage_tokens_for_model(self.llm.model)
 
@@ -1101,30 +1069,6 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		final_res = self.history.final_result()
 		final_result_str = json.dumps(final_res) if final_res is not None else None
 
-		self.telemetry.capture(
-			AgentTelemetryEvent(
-				task=self.task,
-				model=self.llm.model,
-				model_provider=self.llm.provider,
-				max_steps=max_steps,
-				max_actions_per_step=self.settings.max_actions_per_step,
-				use_vision=self.settings.use_vision,
-				version=self.version,
-				source=self.source,
-				cdp_url=urlparse(self.browser_session.cdp_url).hostname
-				if self.browser_session and self.browser_session.cdp_url
-				else None,
-				action_errors=self.history.errors(),
-				action_history=action_history_data,
-				urls_visited=self.history.urls(),
-				steps=self.state.n_steps,
-				total_input_tokens=token_summary.prompt_tokens,
-				total_duration_seconds=self.history.total_duration_seconds(),
-				success=self.history.is_successful(),
-				final_result_response=final_result_str,
-				error_message=agent_run_error,
-			)
-		)
 
 	async def take_step(self, step_info: AgentStepInfo | None = None) -> tuple[bool, bool]:
 		"""Take a step
@@ -1200,24 +1144,21 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 
 		loop = asyncio.get_event_loop()
 		agent_run_error: str | None = None  # Initialize error tracking variable
-		self._force_exit_telemetry_logged = False  # ADDED: Flag for custom telemetry on force exit
+		self._force_exit_logged = False  # Flag for custom logging on force exit
 
 		# Set up the  signal handler with callbacks specific to this agent
 		from cogents_wiz.bu.utils import SignalHandler
 
 		# Define the custom exit callback function for second CTRL+C
-		def on_force_exit_log_telemetry():
+		def on_force_exit_log():
 			self._log_agent_event(max_steps=max_steps, agent_run_error='SIGINT: Cancelled by user')
-			# NEW: Call the flush method on the telemetry instance
-			if hasattr(self, 'telemetry') and self.telemetry:
-				self.telemetry.flush()
-			self._force_exit_telemetry_logged = True  # Set the flag
+			self._force_exit_logged = True  # Set the flag
 
 		signal_handler = SignalHandler(
 			loop=loop,
 			pause_callback=self.pause,
 			resume_callback=self.resume,
-			custom_exit_callback=on_force_exit_log_telemetry,  # Pass the new telemetrycallback
+			custom_exit_callback=on_force_exit_log,  # Pass the new callback
 			exit_on_second_int=True,
 		)
 		signal_handler.register()
@@ -1233,17 +1174,9 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 			self._session_start_time = time.time()
 			self._task_start_time = self._session_start_time  # Initialize task start time
 
-			# Only dispatch session events if this is the first run
+			# Initialize session state
 			if not self.state.session_initialized:
-				self.logger.debug('📡 Dispatching CreateAgentSessionEvent...')
-				# Emit CreateAgentSessionEvent at the START of run()
-				self.eventbus.dispatch(CreateAgentSessionEvent.from_agent(self))
-
 				self.state.session_initialized = True
-
-			self.logger.debug('📡 Dispatching CreateAgentTaskEvent...')
-			# Emit CreateAgentTaskEvent at the START of run()
-			self.eventbus.dispatch(CreateAgentTaskEvent.from_agent(self))
 
 			# Start browser session and attach watchdogs
 			assert self.browser_session is not None, 'Browser session must be initialized before starting'
@@ -1379,21 +1312,15 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 			# Unregister signal handlers before cleanup
 			signal_handler.unregister()
 
-			if not self._force_exit_telemetry_logged:  # MODIFIED: Check the flag
+			if not self._force_exit_logged:  # Check the flag
 				try:
 					self._log_agent_event(max_steps=max_steps, agent_run_error=agent_run_error)
 				except Exception as log_e:  # Catch potential errors during logging itself
-					self.logger.error(f'Failed to log telemetry event: {log_e}', exc_info=True)
+					self.logger.error(f'Failed to log event: {log_e}', exc_info=True)
 			else:
-				# ADDED: Info message when custom telemetry for SIGINT was already logged
-				self.logger.debug('Telemetry for force exit (SIGINT) was logged by custom exit callback.')
+				# Info message when custom logging for SIGINT was already logged
+				self.logger.debug('Logging for force exit (SIGINT) was logged by custom exit callback.')
 
-			# NOTE: CreateAgentSessionEvent and CreateAgentTaskEvent are now emitted at the START of run()
-			# to match backend requirements for CREATE events to be fired when entities are created,
-			# not when they are completed
-
-			# Emit UpdateAgentTaskEvent at the END of run() with final task state
-			self.eventbus.dispatch(UpdateAgentTaskEvent.from_agent(self))
 
 			# Generate GIF if needed before stopping event bus
 			if self.settings.generate_gif:
@@ -1406,21 +1333,7 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 
 				create_history_gif(task=self.task, history=self.history, output_path=output_path)
 
-				# Only emit output file event if GIF was actually created
-				if Path(output_path).exists():
-					output_event = await CreateAgentOutputFileEvent.from_agent_and_file(self, output_path)
-					self.eventbus.dispatch(output_event)
 
-			# Wait briefly for cloud auth to start and print the URL, but don't block for completion
-			if self.enable_cloud_sync and hasattr(self, 'cloud_sync'):
-				if self.cloud_sync.auth_task and not self.cloud_sync.auth_task.done():
-					try:
-						# Wait up to 1 second for auth to start and print URL
-						await asyncio.wait_for(self.cloud_sync.auth_task, timeout=1.0)
-					except TimeoutError:
-						logger.debug('Cloud authentication started - continuing in background')
-					except Exception as e:
-						logger.debug(f'Cloud authentication error: {e}')
 
 			# Stop the event bus gracefully, waiting for all events to be processed
 			# Use longer timeout to avoid deadlocks in tests with multiple agents

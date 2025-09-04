@@ -140,7 +140,6 @@ except ImportError:
 	logger.error('MCP SDK not installed. Install with: pip install mcp')
 	sys.exit(1)
 
-from cogents_wiz.bu.telemetry import MCPServerTelemetryEvent, ProductTelemetry
 from cogents_wiz.bu.utils import get_browser_use_version
 
 
@@ -189,7 +188,6 @@ class BrowserUseServer:
 		self.tools: Tools | None = None
 		self.llm: ChatOpenAI | None = None
 		self.file_system: FileSystem | None = None
-		self._telemetry = ProductTelemetry()
 		self._start_time = time.time()
 
 		# Setup handlers
@@ -379,18 +377,6 @@ class BrowserUseServer:
 				error_msg = str(e)
 				logger.error(f'Tool execution failed: {e}', exc_info=True)
 				return [types.TextContent(type='text', text=f'Error: {str(e)}')]
-			finally:
-				# Capture telemetry for tool calls
-				duration = time.time() - start_time
-				self._telemetry.capture(
-					MCPServerTelemetryEvent(
-						version=get_browser_use_version(),
-						action='tool_call',
-						tool_name=name,
-						duration_seconds=duration,
-						error_message=error_msg,
-					)
-				)
 
 	async def _execute_tool(self, tool_name: str, arguments: dict[str, Any]) -> str:
 		"""Execute a browser-use tool."""
@@ -867,30 +853,11 @@ async def main(http: bool = False, port: int = 3000, json_response: bool = False
 		sys.exit(1)
 
 	server = BrowserUseServer()
-	server._telemetry.capture(
-		MCPServerTelemetryEvent(
-			version=get_browser_use_version(),
-			action='start',
-			parent_process_cmdline=get_parent_process_cmdline(),
-		)
-	)
 
-	try:
-		if http:
-			await server.run_http(port=port, json_response=json_response)
-		else:
-			await server.run()
-	finally:
-		duration = time.time() - server._start_time
-		server._telemetry.capture(
-			MCPServerTelemetryEvent(
-				version=get_browser_use_version(),
-				action='stop',
-				duration_seconds=duration,
-				parent_process_cmdline=get_parent_process_cmdline(),
-			)
-		)
-		server._telemetry.flush()
+	if http:
+		await server.run_http(port=port, json_response=json_response)
+	else:
+		await server.run()
 
 
 if __name__ == '__main__':

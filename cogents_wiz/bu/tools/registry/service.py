@@ -14,7 +14,6 @@ from cogents_wiz.bu.browser import BrowserSession
 from cogents_wiz.bu.filesystem.file_system import FileSystem
 from cogents_wiz.bu.llm.base import BaseChatModel
 from cogents_wiz.bu.observability import observe_debug
-from cogents_wiz.bu.telemetry.service import ProductTelemetry
 from cogents_wiz.bu.tools.registry.views import (
 	ActionModel,
 	ActionRegistry,
@@ -33,7 +32,6 @@ class Registry(Generic[Context]):
 
 	def __init__(self, exclude_actions: list[str] | None = None):
 		self.registry = ActionRegistry()
-		self.telemetry = ProductTelemetry()
 		self.exclude_actions = exclude_actions if exclude_actions is not None else []
 
 	def _get_special_param_types(self) -> dict[str, type | UnionType | None]:
