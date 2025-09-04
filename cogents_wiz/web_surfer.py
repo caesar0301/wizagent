@@ -9,8 +9,8 @@ from cogents.core.base.llm import BaseLLMClient
 from cogents.core.base.typing_compat import override
 
 try:
-    from browser_use import Agent, BrowserSession, Tools
-    from browser_use.agent.views import AgentSettings
+    from cogents_wiz.bu import Agent, BrowserSession, Tools
+    from cogents_wiz.bu.agent.views import AgentSettings
 except ImportError as e:
     raise ImportError(f"Failed to import browser-use components: {e}")
 
@@ -77,7 +77,7 @@ class BrowserUseLLMAdapter:
                     cogents_messages.append({"role": "user", "content": str(msg)})
 
             # Return response wrapped in expected format
-            from browser_use.llm.views import ChatInvokeCompletion, ChatInvokeUsage
+            from cogents_wiz.bu.llm.views import ChatInvokeCompletion, ChatInvokeUsage
 
             # Create usage information (dummy values for now)
             usage = ChatInvokeUsage(
@@ -174,7 +174,7 @@ class WebSurferPage(BaseWebPage):
         """Navigates to the specified URL."""
         try:
             # Navigate using browser session event system
-            from browser_use.browser.events import NavigateToUrlEvent
+            from cogents_wiz.bu.browser.events import NavigateToUrlEvent
 
             event = self.browser_session.event_bus.dispatch(NavigateToUrlEvent(url=url))
             await event
