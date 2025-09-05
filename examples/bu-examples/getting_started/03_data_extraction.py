@@ -25,11 +25,11 @@ from cogents_wiz.bu import Agent, ChatOpenAI
 
 
 async def main():
-	# Initialize the model
-	llm = ChatOpenAI(model='gpt-4.1-mini')
+    # Initialize the model
+    llm = ChatOpenAI(model="gpt-4.1-mini")
 
-	# Define a data extraction task
-	task = """
+    # Define a data extraction task
+    task = """
     Go to https://quotes.toscrape.com/ and extract the following information:
     - The first 5 quotes on the page
     - The author of each quote
@@ -41,10 +41,10 @@ async def main():
     etc.
     """
 
-	# Create and run the agent
-	agent = Agent(task=task, llm=llm)
-	await agent.run()
+    # Create and run the agent
+    agent = Agent(task=task, llm=llm)
+    await agent.run()
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -16,37 +16,37 @@ from cogents_wiz.bu import ChatOpenAI
 from cogents_wiz.bu.agent.service import Agent
 from cogents_wiz.bu.tools.service import Tools
 
-if not os.getenv('OPENAI_API_KEY'):
-	raise ValueError('OPENAI_API_KEY is not set. Please add it to your environment variables.')
+if not os.getenv("OPENAI_API_KEY"):
+    raise ValueError("OPENAI_API_KEY is not set. Please add it to your environment variables.")
 
 tools = Tools()
 
 
 class WebpageInfo(BaseModel):
-	"""Model for webpage link."""
+    """Model for webpage link."""
 
-	link: str = 'https://appointment.mfa.gr/en/reservations/aero/ireland-grcon-dub/'
+    link: str = "https://appointment.mfa.gr/en/reservations/aero/ireland-grcon-dub/"
 
 
-@tools.action('Go to the webpage', param_model=WebpageInfo)
+@tools.action("Go to the webpage", param_model=WebpageInfo)
 def go_to_webpage(webpage_info: WebpageInfo):
-	"""Returns the webpage link."""
-	return webpage_info.link
+    """Returns the webpage link."""
+    return webpage_info.link
 
 
 async def main():
-	"""Main function to execute the agent task."""
-	task = (
-		'Go to the Greece MFA webpage via the link I provided you.'
-		'Check the visa appointment dates. If there is no available date in this month, check the next month.'
-		'If there is no available date in both months, tell me there is no available date.'
-	)
+    """Main function to execute the agent task."""
+    task = (
+        "Go to the Greece MFA webpage via the link I provided you."
+        "Check the visa appointment dates. If there is no available date in this month, check the next month."
+        "If there is no available date in both months, tell me there is no available date."
+    )
 
-	model = ChatOpenAI(model='gpt-4.1-mini')
-	agent = Agent(task, model, tools=tools, use_vision=True)
+    model = ChatOpenAI(model="gpt-4.1-mini")
+    agent = Agent(task, model, tools=tools, use_vision=True)
 
-	await agent.run()
+    await agent.run()
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

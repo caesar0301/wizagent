@@ -16,16 +16,16 @@ load_dotenv()
 from cogents_wiz.bu import Agent
 from cogents_wiz.bu.llm import ChatAnthropic
 
-llm = ChatAnthropic(model='claude-sonnet-4-0', temperature=0.0)
+llm = ChatAnthropic(model="claude-sonnet-4-0", temperature=0.0)
 
 agent = Agent(
-	task='Go to amazon.com, search for laptop, sort by best rating, and give me the price of the first result',
-	llm=llm,
+    task="Go to amazon.com, search for laptop, sort by best rating, and give me the price of the first result",
+    llm=llm,
 )
 
 
 async def main():
-	await agent.run(max_steps=10)
+    await agent.run(max_steps=10)
 
 
 asyncio.run(main())

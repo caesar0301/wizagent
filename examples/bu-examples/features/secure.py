@@ -50,26 +50,26 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 load_dotenv()
 
 
-os.environ['ANONYMIZED_TELEMETRY'] = 'false'
+os.environ["ANONYMIZED_TELEMETRY"] = "false"
 
 
 from cogents_wiz.bu import Agent, BrowserProfile, ChatAzureOpenAI
 
 # Configuration LLM
-api_key = os.getenv('AZURE_OPENAI_KEY')
-azure_endpoint = os.getenv('AZURE_OPENAI_ENDPOINT')
-llm = ChatAzureOpenAI(model='gpt-4.1-mini', api_key=api_key, azure_endpoint=azure_endpoint)
+api_key = os.getenv("AZURE_OPENAI_KEY")
+azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+llm = ChatAzureOpenAI(model="gpt-4.1-mini", api_key=api_key, azure_endpoint=azure_endpoint)
 
 # Configuration Task
-task = 'Find the founders of the sensitive company_name'
+task = "Find the founders of the sensitive company_name"
 
 # Configuration Browser (optional)
-browser_profile = BrowserProfile(allowed_domains=['*google.com', 'browser-use.com'], enable_default_extensions=False)
+browser_profile = BrowserProfile(allowed_domains=["*google.com", "browser-use.com"], enable_default_extensions=False)
 
 # Sensitive data (optional) - {key: sensitive_information} - we filter out the sensitive_information from any input to the LLM, it will only work with placeholder.
 # By default we pass screenshots to the LLM which can contain your information. Set use_vision=False to disable this.
 # If you trust your LLM endpoint, you don't need to worry about this.
-sensitive_data: dict[str, str | dict[str, str]] = {'company_name': 'browser-use'}
+sensitive_data: dict[str, str | dict[str, str]] = {"company_name": "browser-use"}
 
 
 # Create Agent
@@ -77,7 +77,7 @@ agent = Agent(task=task, llm=llm, browser_profile=browser_profile, sensitive_dat
 
 
 async def main():
-	await agent.run(max_steps=10)
+    await agent.run(max_steps=10)
 
 
 asyncio.run(main())

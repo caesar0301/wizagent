@@ -14,42 +14,42 @@ from cogents_wiz.bu.agent.views import AgentHistoryList
 from cogents_wiz.bu.browser import BrowserProfile, BrowserSession
 from cogents_wiz.bu.browser.profile import ViewportSize
 
-llm = ChatOpenAI(model='gpt-4.1-mini')
+llm = ChatOpenAI(model="gpt-4.1-mini")
 
 
 async def main():
-	browser_session = BrowserSession(
-		browser_profile=BrowserProfile(
-			headless=False,
-			traces_dir='./tmp/result_processing',
-			window_size=ViewportSize(width=1280, height=1000),
-			user_data_dir='~/.config/browseruse/profiles/default',
-		)
-	)
-	await browser_session.start()
-	try:
-		agent = Agent(
-			task="go to google.com and type 'OpenAI' click search and give me the first url",
-			llm=llm,
-			browser_session=browser_session,
-		)
-		history: AgentHistoryList = await agent.run(max_steps=3)
+    browser_session = BrowserSession(
+        browser_profile=BrowserProfile(
+            headless=False,
+            traces_dir="./tmp/result_processing",
+            window_size=ViewportSize(width=1280, height=1000),
+            user_data_dir="~/.config/browseruse/profiles/default",
+        )
+    )
+    await browser_session.start()
+    try:
+        agent = Agent(
+            task="go to google.com and type 'OpenAI' click search and give me the first url",
+            llm=llm,
+            browser_session=browser_session,
+        )
+        history: AgentHistoryList = await agent.run(max_steps=3)
 
-		print('Final Result:')
-		pprint(history.final_result(), indent=4)
+        print("Final Result:")
+        pprint(history.final_result(), indent=4)
 
-		print('\nErrors:')
-		pprint(history.errors(), indent=4)
+        print("\nErrors:")
+        pprint(history.errors(), indent=4)
 
-		# e.g. xPaths the model clicked on
-		print('\nModel Outputs:')
-		pprint(history.model_actions(), indent=4)
+        # e.g. xPaths the model clicked on
+        print("\nModel Outputs:")
+        pprint(history.model_actions(), indent=4)
 
-		print('\nThoughts:')
-		pprint(history.model_thoughts(), indent=4)
-	finally:
-		await browser_session.stop()
+        print("\nThoughts:")
+        pprint(history.model_thoughts(), indent=4)
+    finally:
+        await browser_session.stop()
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

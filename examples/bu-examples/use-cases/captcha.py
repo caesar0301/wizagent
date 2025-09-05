@@ -22,14 +22,14 @@ from cogents_wiz.bu import Agent, ChatOpenAI
 
 
 async def main():
-	llm = ChatOpenAI(model='gpt-4.1-mini')
-	agent = Agent(
-		task='go to https://captcha.com/demos/features/captcha-demo.aspx and solve the captcha',
-		llm=llm,
-	)
-	await agent.run()
-	input('Press Enter to exit')
+    llm = ChatOpenAI(model="gpt-4.1-mini")
+    agent = Agent(
+        task="go to https://captcha.com/demos/features/captcha-demo.aspx and solve the captcha",
+        llm=llm,
+    )
+    await agent.run()
+    input("Press Enter to exit")
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

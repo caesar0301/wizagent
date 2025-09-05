@@ -29,23 +29,23 @@ from cogents_wiz.bu import Agent, Tools
 from cogents_wiz.bu.browser import BrowserProfile, BrowserSession
 from cogents_wiz.bu.llm import ChatOpenAI
 
-browser_session = BrowserSession(browser_profile=BrowserProfile(cdp_url='http://localhost:9222', is_local=True))
+browser_session = BrowserSession(browser_profile=BrowserProfile(cdp_url="http://localhost:9222", is_local=True))
 tools = Tools()
 
 
 async def main():
-	agent = Agent(
-		task='Visit https://duckduckgo.com and search for "browser-use founders"',
-		lllm=ChatOpenAI(model='gpt-4.1-mini'),
-		tools=tools,
-		browser_session=browser_session,
-	)
+    agent = Agent(
+        task='Visit https://duckduckgo.com and search for "browser-use founders"',
+        lllm=ChatOpenAI(model="gpt-4.1-mini"),
+        tools=tools,
+        browser_session=browser_session,
+    )
 
-	await agent.run()
-	await browser_session.kill()
+    await agent.run()
+    await browser_session.kill()
 
-	input('Press Enter to close...')
+    input("Press Enter to close...")
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -13,8 +13,8 @@ load_dotenv()
 from cogents_wiz.bu import Agent, ChatOpenAI
 from cogents_wiz.bu.browser import BrowserProfile, BrowserSession
 
-if not os.getenv('OPENAI_API_KEY'):
-	raise ValueError('OPENAI_API_KEY is not set')
+if not os.getenv("OPENAI_API_KEY"):
+    raise ValueError("OPENAI_API_KEY is not set")
 
 """
 Example: Enhanced 'Scroll' action with page amounts and element-specific scrolling.
@@ -39,58 +39,58 @@ This script demonstrates the new enhanced scrolling capabilities:
    - Container-aware scrolling prevents unwanted side effects
 """
 
-llm = ChatOpenAI(model='gpt-4.1-mini')
+llm = ChatOpenAI(model="gpt-4.1-mini")
 
 browser_profile = BrowserProfile(headless=False)
 browser_session = BrowserSession(browser_profile=browser_profile)
 
 # Example 1: Basic page scrolling with custom amounts
 agent1 = Agent(
-	task="Navigate to 'https://en.wikipedia.org/wiki/Internet' and scroll down by one page - then scroll up by 0.5 pages - then scroll down by 0.25 pages - then scroll down by 2 pages.",
-	llm=llm,
-	browser_session=browser_session,
+    task="Navigate to 'https://en.wikipedia.org/wiki/Internet' and scroll down by one page - then scroll up by 0.5 pages - then scroll down by 0.25 pages - then scroll down by 2 pages.",
+    llm=llm,
+    browser_session=browser_session,
 )
 
 # Example 2: Element-specific scrolling (dropdowns and containers)
 agent2 = Agent(
-	task="""Go to https://semantic-ui.com/modules/dropdown.html#/definition and:
+    task="""Go to https://semantic-ui.com/modules/dropdown.html#/definition and:
 	1. Scroll down in the left sidebar by 2 pages
 	2. Then scroll down 1 page in the main content area
 	3. Click on the State dropdown and scroll down 1 page INSIDE the dropdown to see more states
 	4. The dropdown should stay open while scrolling inside it""",
-	llm=llm,
-	browser_session=browser_session,
+    llm=llm,
+    browser_session=browser_session,
 )
 
 # Example 3: Text-based scrolling alternative
 agent3 = Agent(
-	task="Navigate to 'https://en.wikipedia.org/wiki/Internet' and scroll to the text 'The vast majority of computer'",
-	llm=llm,
-	browser_session=browser_session,
+    task="Navigate to 'https://en.wikipedia.org/wiki/Internet' and scroll to the text 'The vast majority of computer'",
+    llm=llm,
+    browser_session=browser_session,
 )
 
 
 async def main():
-	print('Choose which scrolling example to run:')
-	print('1. Basic page scrolling with custom amounts (Wikipedia)')
-	print('2. Element-specific scrolling (Semantic UI dropdowns)')
-	print('3. Text-based scrolling (Wikipedia)')
+    print("Choose which scrolling example to run:")
+    print("1. Basic page scrolling with custom amounts (Wikipedia)")
+    print("2. Element-specific scrolling (Semantic UI dropdowns)")
+    print("3. Text-based scrolling (Wikipedia)")
 
-	choice = input('Enter choice (1-3): ').strip()
+    choice = input("Enter choice (1-3): ").strip()
 
-	if choice == '1':
-		print('🚀 Running Example 1: Basic page scrolling...')
-		await agent1.run()
-	elif choice == '2':
-		print('🚀 Running Example 2: Element-specific scrolling...')
-		await agent2.run()
-	elif choice == '3':
-		print('🚀 Running Example 3: Text-based scrolling...')
-		await agent3.run()
-	else:
-		print('❌ Invalid choice. Running Example 1 by default...')
-		await agent1.run()
+    if choice == "1":
+        print("🚀 Running Example 1: Basic page scrolling...")
+        await agent1.run()
+    elif choice == "2":
+        print("🚀 Running Example 2: Element-specific scrolling...")
+        await agent2.run()
+    elif choice == "3":
+        print("🚀 Running Example 3: Text-based scrolling...")
+        await agent3.run()
+    else:
+        print("❌ Invalid choice. Running Example 1 by default...")
+        await agent1.run()
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

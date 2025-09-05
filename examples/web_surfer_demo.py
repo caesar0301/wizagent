@@ -35,6 +35,7 @@ import logging
 
 from cogents.core.base.llm import get_llm_client
 from cogents.core.base.logging import setup_logging
+
 from cogents_wiz.web_surfer import WebSurfer
 
 # Setup logging

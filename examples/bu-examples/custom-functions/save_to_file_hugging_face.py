@@ -19,32 +19,32 @@ tools = Tools()
 
 
 class Model(BaseModel):
-	title: str
-	url: str
-	likes: int
-	license: str
+    title: str
+    url: str
+    likes: int
+    license: str
 
 
 class Models(BaseModel):
-	models: list[Model]
+    models: list[Model]
 
 
-@tools.action('Save models', param_model=Models)
+@tools.action("Save models", param_model=Models)
 def save_models(params: Models):
-	with open('models.txt', 'a') as f:
-		for model in params.models:
-			f.write(f'{model.title} ({model.url}): {model.likes} likes, {model.license}\n')
+    with open("models.txt", "a") as f:
+        for model in params.models:
+            f.write(f"{model.title} ({model.url}): {model.likes} likes, {model.license}\n")
 
 
 # video: https://preview.screen.studio/share/EtOhIk0P
 async def main():
-	task = 'Look up models with a license of cc-by-sa-4.0 and sort by most likes on Hugging face, save top 5 to file.'
+    task = "Look up models with a license of cc-by-sa-4.0 and sort by most likes on Hugging face, save top 5 to file."
 
-	model = ChatOpenAI(model='gpt-4.1-mini')
-	agent = Agent(task=task, llm=model, tools=tools)
+    model = ChatOpenAI(model="gpt-4.1-mini")
+    agent = Agent(task=task, llm=model, tools=tools)
 
-	await agent.run()
+    await agent.run()
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

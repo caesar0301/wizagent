@@ -47,25 +47,25 @@ from cogents_wiz.bu.llm import ChatGoogle
 from examples.integrations.discord.discord_api import DiscordBot
 
 # load credentials from environment variables
-bot_token = os.getenv('DISCORD_BOT_TOKEN')
+bot_token = os.getenv("DISCORD_BOT_TOKEN")
 if not bot_token:
-	raise ValueError('Discord bot token not found in .env file.')
+    raise ValueError("Discord bot token not found in .env file.")
 
-api_key = os.getenv('GOOGLE_API_KEY')
+api_key = os.getenv("GOOGLE_API_KEY")
 if not api_key:
-	raise ValueError('GOOGLE_API_KEY is not set')
+    raise ValueError("GOOGLE_API_KEY is not set")
 
-llm = ChatGoogle(model='gemini-2.0-flash-exp', api_key=api_key)
+llm = ChatGoogle(model="gemini-2.0-flash-exp", api_key=api_key)
 
 bot = DiscordBot(
-	llm=llm,  # required; instance of BaseChatModel
-	prefix='$bu',  # optional; prefix of messages to trigger browser-use, defaults to "$bu"
-	ack=True,  # optional; whether to acknowledge task receipt with a message, defaults to False
-	browser_profile=BrowserProfile(
-		headless=False
-	),  # optional; useful for changing headless mode or other browser configs, defaults to headless mode
+    llm=llm,  # required; instance of BaseChatModel
+    prefix="$bu",  # optional; prefix of messages to trigger browser-use, defaults to "$bu"
+    ack=True,  # optional; whether to acknowledge task receipt with a message, defaults to False
+    browser_profile=BrowserProfile(
+        headless=False
+    ),  # optional; useful for changing headless mode or other browser configs, defaults to headless mode
 )
 
 bot.run(
-	token=bot_token,  # required; Discord bot token
+    token=bot_token,  # required; Discord bot token
 )

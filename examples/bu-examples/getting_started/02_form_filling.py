@@ -25,11 +25,11 @@ from cogents_wiz.bu import Agent, ChatOpenAI
 
 
 async def main():
-	# Initialize the model
-	llm = ChatOpenAI(model='gpt-4.1-mini')
+    # Initialize the model
+    llm = ChatOpenAI(model="gpt-4.1-mini")
 
-	# Define a form filling task
-	task = """
+    # Define a form filling task
+    task = """
     Go to https://httpbin.org/forms/post and fill out the contact form with:
     - Customer name: John Doe
     - Telephone: 555-123-4567
@@ -42,10 +42,10 @@ async def main():
     Then submit the form and tell me what response you get.
     """
 
-	# Create and run the agent
-	agent = Agent(task=task, llm=llm)
-	await agent.run()
+    # Create and run the agent
+    agent = Agent(task=task, llm=llm)
+    await agent.run()
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

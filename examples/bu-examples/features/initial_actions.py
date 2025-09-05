@@ -10,22 +10,22 @@ load_dotenv()
 
 from cogents_wiz.bu import Agent, ChatOpenAI
 
-llm = ChatOpenAI(model='gpt-4.1-mini')
+llm = ChatOpenAI(model="gpt-4.1-mini")
 
 initial_actions = [
-	{'go_to_url': {'url': 'https://www.google.com', 'new_tab': True}},
-	{'go_to_url': {'url': 'https://en.wikipedia.org/wiki/Randomness', 'new_tab': True}},
+    {"go_to_url": {"url": "https://www.google.com", "new_tab": True}},
+    {"go_to_url": {"url": "https://en.wikipedia.org/wiki/Randomness", "new_tab": True}},
 ]
 agent = Agent(
-	task='What theories are displayed on the page?',
-	initial_actions=initial_actions,
-	llm=llm,
+    task="What theories are displayed on the page?",
+    initial_actions=initial_actions,
+    llm=llm,
 )
 
 
 async def main():
-	await agent.run(max_steps=10)
+    await agent.run(max_steps=10)
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

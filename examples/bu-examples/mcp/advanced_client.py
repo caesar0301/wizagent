@@ -18,45 +18,45 @@ from cogents_wiz.bu.mcp.client import MCPClient
 
 
 async def main():
-	"""Sign up for account, save details, and verify via Gmail."""
+    """Sign up for account, save details, and verify via Gmail."""
 
-	# Initialize tools
-	tools = Tools()
+    # Initialize tools
+    tools = Tools()
 
-	# Connect to Gmail MCP Server
-	# Requires Gmail API credentials - see: https://github.com/GongRzhe/Gmail-MCP-Server#setup
-	gmail_env = {}
-	if client_id := os.getenv('GMAIL_CLIENT_ID'):
-		gmail_env['GMAIL_CLIENT_ID'] = client_id
-	if client_secret := os.getenv('GMAIL_CLIENT_SECRET'):
-		gmail_env['GMAIL_CLIENT_SECRET'] = client_secret
-	if refresh_token := os.getenv('GMAIL_REFRESH_TOKEN'):
-		gmail_env['GMAIL_REFRESH_TOKEN'] = refresh_token
+    # Connect to Gmail MCP Server
+    # Requires Gmail API credentials - see: https://github.com/GongRzhe/Gmail-MCP-Server#setup
+    gmail_env = {}
+    if client_id := os.getenv("GMAIL_CLIENT_ID"):
+        gmail_env["GMAIL_CLIENT_ID"] = client_id
+    if client_secret := os.getenv("GMAIL_CLIENT_SECRET"):
+        gmail_env["GMAIL_CLIENT_SECRET"] = client_secret
+    if refresh_token := os.getenv("GMAIL_REFRESH_TOKEN"):
+        gmail_env["GMAIL_REFRESH_TOKEN"] = refresh_token
 
-	gmail_client = MCPClient(server_name='gmail', command='npx', args=['gmail-mcp-server'], env=gmail_env)
+    gmail_client = MCPClient(server_name="gmail", command="npx", args=["gmail-mcp-server"], env=gmail_env)
 
-	# Connect to Filesystem MCP Server for saving registration details
-	filesystem_client = MCPClient(
-		server_name='filesystem',
-		command='npx',
-		args=['-y', '@modelcontextprotocol/server-filesystem', os.path.expanduser('~/Desktop')],
-	)
+    # Connect to Filesystem MCP Server for saving registration details
+    filesystem_client = MCPClient(
+        server_name="filesystem",
+        command="npx",
+        args=["-y", "@modelcontextprotocol/server-filesystem", os.path.expanduser("~/Desktop")],
+    )
 
-	# Connect and register tools from both servers
-	print('Connecting to Gmail MCP server...')
-	await gmail_client.connect()
-	await gmail_client.register_to_tools(tools)
+    # Connect and register tools from both servers
+    print("Connecting to Gmail MCP server...")
+    await gmail_client.connect()
+    await gmail_client.register_to_tools(tools)
 
-	print('Connecting to Filesystem MCP server...')
-	await filesystem_client.connect()
-	await filesystem_client.register_to_tools(tools)
+    print("Connecting to Filesystem MCP server...")
+    await filesystem_client.connect()
+    await filesystem_client.register_to_tools(tools)
 
-	# Create agent with extended system prompt for using multiple MCP servers
-	agent = Agent(
-		task='Sign up for a new Anthropic account using the email example@gmail.com, save the registration details to a file',
-		llm=ChatOpenAI(model='gpt-4.1-mini'),
-		tools=tools,
-		extend_system_message="""
+    # Create agent with extended system prompt for using multiple MCP servers
+    agent = Agent(
+        task="Sign up for a new Anthropic account using the email example@gmail.com, save the registration details to a file",
+        llm=ChatOpenAI(model="gpt-4.1-mini"),
+        tools=tools,
+        extend_system_message="""
 You have access to both Gmail and Filesystem tools through MCP servers. When signing up for accounts:
 
 1. Fill out registration forms with the provided email address
@@ -84,28 +84,28 @@ Filesystem tools:
 
 Always wait a few seconds after submitting a form before checking Gmail to allow the email to arrive.
 """,
-	)
+    )
 
-	# Run the agent
-	result = await agent.run()
+    # Run the agent
+    result = await agent.run()
 
-	print('\nTask completed!')
-	print(f'Result: {result}')
+    print("\nTask completed!")
+    print(f"Result: {result}")
 
-	# Disconnect both MCP clients
-	await gmail_client.disconnect()
-	await filesystem_client.disconnect()
+    # Disconnect both MCP clients
+    await gmail_client.disconnect()
+    await filesystem_client.disconnect()
 
 
-if __name__ == '__main__':
-	# Prerequisites:
-	# 1. Install both MCP servers:
-	#    npm install -g gmail-mcp-server
-	#    npm install -g @modelcontextprotocol/server-filesystem
-	# 2. Set up Gmail API credentials following: https://github.com/GongRzhe/Gmail-MCP-Server#setup
-	# 3. Set these environment variables:
-	#    export GMAIL_CLIENT_ID="your-client-id"
-	#    export GMAIL_CLIENT_SECRET="your-client-secret"
-	#    export GMAIL_REFRESH_TOKEN="your-refresh-token"
+if __name__ == "__main__":
+    # Prerequisites:
+    # 1. Install both MCP servers:
+    #    npm install -g gmail-mcp-server
+    #    npm install -g @modelcontextprotocol/server-filesystem
+    # 2. Set up Gmail API credentials following: https://github.com/GongRzhe/Gmail-MCP-Server#setup
+    # 3. Set these environment variables:
+    #    export GMAIL_CLIENT_ID="your-client-id"
+    #    export GMAIL_CLIENT_SECRET="your-client-secret"
+    #    export GMAIL_REFRESH_TOKEN="your-refresh-token"
 
-	asyncio.run(main())
+    asyncio.run(main())

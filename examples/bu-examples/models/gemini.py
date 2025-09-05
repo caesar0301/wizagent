@@ -10,21 +10,21 @@ from cogents_wiz.bu import Agent, ChatGoogle
 
 load_dotenv()
 
-api_key = os.getenv('GOOGLE_API_KEY')
+api_key = os.getenv("GOOGLE_API_KEY")
 if not api_key:
-	raise ValueError('GOOGLE_API_KEY is not set')
+    raise ValueError("GOOGLE_API_KEY is not set")
 
-llm = ChatGoogle(model='gemini-2.5-flash', api_key=api_key)
+llm = ChatGoogle(model="gemini-2.5-flash", api_key=api_key)
 
 
 async def run_search():
-	agent = Agent(
-		task='Go to google.com/travel/flights and find the cheapest flight from New York to Paris on 2025-07-15',
-		llm=llm,
-	)
+    agent = Agent(
+        task="Go to google.com/travel/flights and find the cheapest flight from New York to Paris on 2025-07-15",
+        llm=llm,
+    )
 
-	await agent.run(max_steps=25)
+    await agent.run(max_steps=25)
 
 
-if __name__ == '__main__':
-	asyncio.run(run_search())
+if __name__ == "__main__":
+    asyncio.run(run_search())

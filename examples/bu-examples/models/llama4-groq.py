@@ -12,10 +12,10 @@ load_dotenv()
 from cogents_wiz.bu import Agent
 from cogents_wiz.bu.llm import ChatGroq
 
-groq_api_key = os.environ.get('GROQ_API_KEY')
+groq_api_key = os.environ.get("GROQ_API_KEY")
 llm = ChatGroq(
-	model='meta-llama/llama-4-maverick-17b-128e-instruct',
-	# temperature=0.1,
+    model="meta-llama/llama-4-maverick-17b-128e-instruct",
+    # temperature=0.1,
 )
 
 # llm = ChatGroq(
@@ -24,16 +24,16 @@ llm = ChatGroq(
 # 	temperature=0.0,
 # )
 
-task = 'Go to amazon.com, search for laptop, sort by best rating, and give me the price of the first result'
+task = "Go to amazon.com, search for laptop, sort by best rating, and give me the price of the first result"
 
 
 async def main():
-	agent = Agent(
-		task=task,
-		llm=llm,
-	)
-	await agent.run()
+    agent = Agent(
+        task=task,
+        llm=llm,
+    )
+    await agent.run()
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

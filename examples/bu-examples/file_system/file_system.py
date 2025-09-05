@@ -11,10 +11,10 @@ load_dotenv()
 
 
 SCRIPT_DIR = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
-agent_dir = SCRIPT_DIR / 'file_system'
+agent_dir = SCRIPT_DIR / "file_system"
 agent_dir.mkdir(exist_ok=True)
-conversation_dir = agent_dir / 'conversations' / 'conversation'
-print(f'Agent logs directory: {agent_dir}')
+conversation_dir = agent_dir / "conversations" / "conversation"
+print(f"Agent logs directory: {agent_dir}")
 
 
 task = """
@@ -25,26 +25,28 @@ Then, read the file to see its content and make sure it's correct.
 Finally, share the file with me.
 
 NOTE: DO NOT USE extract_structured_data action - everything is visible in browser state.
-""".strip('\n')
+""".strip(
+    "\n"
+)
 
-llm = ChatOpenAI(model='gpt-4.1-mini')
+llm = ChatOpenAI(model="gpt-4.1-mini")
 
 agent = Agent(
-	task=task,
-	llm=llm,
-	save_conversation_path=str(conversation_dir),
-	file_system_path=str(agent_dir / 'fs'),
+    task=task,
+    llm=llm,
+    save_conversation_path=str(conversation_dir),
+    file_system_path=str(agent_dir / "fs"),
 )
 
 
 async def main():
-	agent_history = await agent.run()
-	print(f'Final result: {agent_history.final_result()}', flush=True)
+    agent_history = await agent.run()
+    print(f"Final result: {agent_history.final_result()}", flush=True)
 
-	input('Press Enter to clean the file system...')
-	# clean the file system
-	shutil.rmtree(str(agent_dir / 'fs'))
+    input("Press Enter to clean the file system...")
+    # clean the file system
+    shutil.rmtree(str(agent_dir / "fs"))
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

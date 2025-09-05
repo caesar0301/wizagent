@@ -21,4 +21,4 @@ Usage:
 from .actions import register_gmail_actions
 from .service import GmailService
 
-__all__ = ['GmailService', 'register_gmail_actions']
+__all__ = ["GmailService", "register_gmail_actions"]

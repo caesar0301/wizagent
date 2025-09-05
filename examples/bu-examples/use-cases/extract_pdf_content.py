@@ -22,17 +22,17 @@ logger = logging.getLogger(__name__)
 
 
 async def main():
-	agent = Agent(
-		task="""
+    agent = Agent(
+        task="""
         Objective: Navigate to the following UR, what is on page 3?
 
         URL: https://docs.house.gov/meetings/GO/GO00/20220929/115171/HHRG-117-GO00-20220929-SD010.pdf
         """,
-		llm=ChatOpenAI(model='gpt-4.1-mini'),
-	)
-	result = await agent.run()
-	logger.info(result)
+        llm=ChatOpenAI(model="gpt-4.1-mini"),
+    )
+    result = await agent.run()
+    logger.info(result)
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

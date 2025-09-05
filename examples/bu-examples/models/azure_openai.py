@@ -19,12 +19,12 @@ from cogents_wiz.bu import Agent
 from cogents_wiz.bu.llm import ChatAzureOpenAI
 
 # Make sure your deployment exists, double check the region and model name
-api_key = os.getenv('AZURE_OPENAI_KEY')
-azure_endpoint = os.getenv('AZURE_OPENAI_ENDPOINT')
+api_key = os.getenv("AZURE_OPENAI_KEY")
+azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 llm = ChatAzureOpenAI(
-	model='gpt-4.1-mini',
-	api_key=api_key,
-	azure_endpoint=azure_endpoint,
+    model="gpt-4.1-mini",
+    api_key=api_key,
+    azure_endpoint=azure_endpoint,
 )
 
 TASK = """
@@ -32,13 +32,13 @@ Go to google.com/travel/flights and find the cheapest flight from New York to Pa
 """
 
 agent = Agent(
-	task=TASK,
-	llm=llm,
+    task=TASK,
+    llm=llm,
 )
 
 
 async def main():
-	await agent.run(max_steps=10)
+    await agent.run(max_steps=10)
 
 
 asyncio.run(main())

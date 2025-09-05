@@ -19,14 +19,14 @@ task = """Go to reddit.com"""
 
 
 async def main():
-	agent = Agent(task=task, browser_profile=profile)
-	await agent.run(max_steps=1)
+    agent = Agent(task=task, browser_profile=profile)
+    await agent.run(max_steps=1)
 
-	while True:
-		user_response = input('\n👤 New task or "q" to quit: ')
-		agent.add_new_task(f'New task: {user_response}')
-		await agent.run()
+    while True:
+        user_response = input('\n👤 New task or "q" to quit: ')
+        agent.add_new_task(f"New task: {user_response}")
+        await agent.run()
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

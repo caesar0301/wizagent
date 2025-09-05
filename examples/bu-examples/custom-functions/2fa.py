@@ -21,24 +21,24 @@ logger = logging.getLogger(__name__)
 tools = Tools()
 
 
-@tools.registry.action('Get 2FA code from when OTP is required')
+@tools.registry.action("Get 2FA code from when OTP is required")
 async def get_otp_2fa() -> ActionResult:
-	"""
-	Custom action to retrieve 2FA/MFA code from OTP secret key using pyotp.
-	The OTP secret key should be set in the environment variable OTP_SECRET_KEY.
-	"""
-	secret_key = os.environ.get('OTP_SECRET_KEY')
-	if not secret_key:
-		raise ValueError('OTP_SECRET_KEY environment variable is not set')
+    """
+    Custom action to retrieve 2FA/MFA code from OTP secret key using pyotp.
+    The OTP secret key should be set in the environment variable OTP_SECRET_KEY.
+    """
+    secret_key = os.environ.get("OTP_SECRET_KEY")
+    if not secret_key:
+        raise ValueError("OTP_SECRET_KEY environment variable is not set")
 
-	totp = pyotp.TOTP(secret_key, digits=6)
-	code = totp.now()
-	return ActionResult(extracted_content=code)
+    totp = pyotp.TOTP(secret_key, digits=6)
+    code = totp.now()
+    return ActionResult(extracted_content=code)
 
 
 async def main():
-	# Example task using the 1Password 2FA action
-	task = """
+    # Example task using the 1Password 2FA action
+    task = """
 	Steps:
 	1. Go to https://authenticationtest.com/totpChallenge/ and try to log in.
 	2. If prompted for 2FA code:
@@ -55,12 +55,12 @@ async def main():
 	You are completely FORBIDDEN to use any other method to get the 2FA code.
 	"""
 
-	model = ChatOpenAI(model='gpt-4.1-mini')
-	agent = Agent(task=task, llm=model, tools=tools)
+    model = ChatOpenAI(model="gpt-4.1-mini")
+    agent = Agent(task=task, llm=model, tools=tools)
 
-	result = await agent.run()
-	print(f'Task completed with result: {result}')
+    result = await agent.run()
+    print(f"Task completed with result: {result}")
 
 
-if __name__ == '__main__':
-	asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

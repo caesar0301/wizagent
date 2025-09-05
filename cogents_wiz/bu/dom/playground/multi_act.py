@@ -5,7 +5,7 @@ from cogents_wiz.bu.llm import ChatAzureOpenAI
 
 # Initialize the Azure OpenAI client
 llm = ChatAzureOpenAI(
-	model='gpt-4.1-mini',
+    model="gpt-4.1-mini",
 )
 
 
@@ -15,18 +15,18 @@ Go to https://browser-use.github.io/stress-tests/challenges/react-native-web-for
 
 
 async def main():
-	browser = BrowserSession(
-		browser_profile=BrowserProfile(
-			window_size=ViewportSize(width=1100, height=1000),
-		)
-	)
+    browser = BrowserSession(
+        browser_profile=BrowserProfile(
+            window_size=ViewportSize(width=1100, height=1000),
+        )
+    )
 
-	agent = Agent(task=TASK, llm=llm)
+    agent = Agent(task=TASK, llm=llm)
 
-	await agent.run()
+    await agent.run()
 
 
-if __name__ == '__main__':
-	import asyncio
+if __name__ == "__main__":
+    import asyncio
 
-	asyncio.run(main())
+    asyncio.run(main())
