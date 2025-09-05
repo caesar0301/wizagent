@@ -1,180 +1,35 @@
-import asyncio
 import logging
 from typing import Any, Dict, List, Optional, Union
 
+from cogents_core.base.base_websurfer import BaseWebPage, BaseWebSurfer, ObserveResult
+from cogents_core.typing_compat import override
 from pydantic import BaseModel
 
-from cogents.core.base.base_websurfer import BaseWebPage, BaseWebSurfer, ObserveResult
-from cogents.core.base.llm import BaseLLMClient
-from cogents.core.base.typing_compat import override
+from .llm_adapter import BaseLLMClient, BULLMAdapter, get_llm_client
 
 try:
-    from browser_use import Agent, BrowserSession, Tools
-    from browser_use.agent.views import AgentSettings
+    from wizagent.bu import Agent, BrowserSession, Tools
+    from wizagent.bu.agent.views import AgentSettings
 except ImportError as e:
     raise ImportError(f"Failed to import browser-use components: {e}")
 
 logger = logging.getLogger(__name__)
 
 
-class BrowserUseLLMAdapter:
-    """Adapter to make cogents LLM clients compatible with browser-use."""
-
-    def __init__(self, cogents_client: BaseLLMClient):
-        self.cogents_client = cogents_client
-        self.model = getattr(cogents_client, "model", "unknown")
-        self._verified_api_keys = True  # Assume the cogents client is properly configured
-
-    @property
-    def provider(self) -> str:
-        """Return the provider name."""
-        return getattr(self.cogents_client, "provider", "cogents")
-
-    @property
-    def name(self) -> str:
-        """Return the model name."""
-        return self.model
-
-    @property
-    def model_name(self) -> str:
-        """Return the model name for legacy support."""
-        return self.model
-
-    async def ainvoke(self, messages: List[Any], output_format: Optional[type] = None, **kwargs) -> Any:
-        """Invoke the LLM with messages."""
-        try:
-            # Convert browser-use messages to cogents format
-            cogents_messages = []
-            for msg in messages:
-                if hasattr(msg, "role"):
-                    # Extract text content properly from browser-use message objects
-                    content_text = ""
-                    if hasattr(msg, "text"):
-                        # Use the convenient .text property that handles both string and list formats
-                        content_text = msg.text
-                    elif hasattr(msg, "content"):
-                        # Fallback: handle content directly
-                        if isinstance(msg.content, str):
-                            content_text = msg.content
-                        elif isinstance(msg.content, list):
-                            # Extract text from content parts
-                            text_parts = []
-                            for part in msg.content:
-                                if hasattr(part, "text") and hasattr(part, "type") and part.type == "text":
-                                    text_parts.append(part.text)
-                            content_text = "\n".join(text_parts)
-                        else:
-                            content_text = str(msg.content)
-                    else:
-                        content_text = str(msg)
-
-                    cogents_messages.append({"role": msg.role, "content": content_text})
-                elif isinstance(msg, dict):
-                    # Already in the right format
-                    cogents_messages.append(msg)
-                else:
-                    # Handle other message formats
-                    cogents_messages.append({"role": "user", "content": str(msg)})
-
-            # Return response wrapped in expected format
-            from browser_use.llm.views import ChatInvokeCompletion, ChatInvokeUsage
-
-            # Create usage information (dummy values for now)
-            usage = ChatInvokeUsage(
-                prompt_tokens=0,
-                prompt_cached_tokens=None,
-                prompt_cache_creation_tokens=None,
-                prompt_image_tokens=None,
-                completion_tokens=0,
-                total_tokens=0,
-            )
-
-            # Choose completion method based on output_format
-            if output_format is not None:
-                # Use structured completion for structured output
-                try:
-                    if hasattr(self.cogents_client, "structured_completion"):
-                        if asyncio.iscoroutinefunction(self.cogents_client.structured_completion):
-                            structured_response = await self.cogents_client.structured_completion(
-                                cogents_messages, output_format
-                            )
-                        else:
-                            structured_response = self.cogents_client.structured_completion(
-                                cogents_messages, output_format
-                            )
-                        return ChatInvokeCompletion(completion=structured_response, usage=usage)
-                    else:
-                        # Fall back to regular completion + JSON parsing if structured_completion not available
-                        if asyncio.iscoroutinefunction(self.cogents_client.completion):
-                            response = await self.cogents_client.completion(cogents_messages)
-                        else:
-                            response = self.cogents_client.completion(cogents_messages)
-
-                        # Try to parse as JSON and create structured object
-                        import json
-
-                        response_str = str(response)
-                        try:
-                            parsed_data = json.loads(response_str)
-                            if isinstance(parsed_data, dict):
-                                parsed_object = output_format(**parsed_data)
-                                return ChatInvokeCompletion(completion=parsed_object, usage=usage)
-                            else:
-                                raise ValueError("Parsed JSON is not a dictionary")
-                        except (json.JSONDecodeError, ValueError, TypeError) as parse_error:
-                            logger.error(
-                                f"Failed to parse response as JSON for {output_format.__name__}: {parse_error}"
-                            )
-                            logger.error(f"Response content: {response_str}")
-                            # Create minimal fallback structured object
-                            if hasattr(output_format, "model_fields") and "action" in output_format.model_fields:
-                                fallback_data = {
-                                    "thinking": f"Parse error: {str(parse_error)}",
-                                    "evaluation_previous_goal": "Unable to parse structured response",
-                                    "memory": response_str[:500],  # Truncate for safety
-                                    "next_goal": "Retry with simpler approach",
-                                    "action": [],
-                                }
-                                try:
-                                    parsed_object = output_format(**fallback_data)
-                                    return ChatInvokeCompletion(completion=parsed_object, usage=usage)
-                                except Exception:
-                                    pass
-                            raise parse_error
-
-                except Exception as e:
-                    logger.error(f"Error in structured completion: {e}")
-                    raise
-            else:
-                # Use regular completion for string output
-                if asyncio.iscoroutinefunction(self.cogents_client.completion):
-                    response = await self.cogents_client.completion(cogents_messages)
-                else:
-                    response = self.cogents_client.completion(cogents_messages)
-
-                return ChatInvokeCompletion(completion=str(response), usage=usage)
-
-        except Exception as e:
-            logger.error(f"Error in LLM adapter: {e}")
-            raise
-
-
 class WebSurferPage(BaseWebPage):
     """Web page implementation using browser-use."""
 
-    def __init__(self, browser_session: BrowserSession, llm_client=None):
+    def __init__(self, browser_session: BrowserSession):
         self.browser_session = browser_session
-        self.llm_client = llm_client
-        self.tools = None
-        if llm_client:
-            self.tools = Tools()
+        self.llm_client: BaseLLMClient = get_llm_client()
+        self.tools = Tools()
 
     @override
     async def navigate(self, url: str, **kwargs) -> None:
         """Navigates to the specified URL."""
         try:
             # Navigate using browser session event system
-            from browser_use.browser.events import NavigateToUrlEvent
+            from wizagent.bu.browser.events import NavigateToUrlEvent
 
             event = self.browser_session.event_bus.dispatch(NavigateToUrlEvent(url=url))
             await event
@@ -196,7 +51,7 @@ class WebSurferPage(BaseWebPage):
                 raise ValueError("LLM client is required for action execution")
 
             # Create a browser-use compatible LLM adapter
-            llm_adapter = BrowserUseLLMAdapter(self.llm_client)
+            llm_adapter = BULLMAdapter(self.llm_client)
 
             # Create agent for this specific action
             agent = Agent(
@@ -231,7 +86,7 @@ class WebSurferPage(BaseWebPage):
                 raise ValueError("LLM client is required for data extraction")
 
             # Create a browser-use compatible LLM adapter
-            llm_adapter = BrowserUseLLMAdapter(self.llm_client)
+            llm_adapter = BULLMAdapter(self.llm_client)
 
             # Prepare task instruction
             task_instruction = f"Extract data from the current page: {instruction}"
@@ -296,7 +151,7 @@ class WebSurferPage(BaseWebPage):
                 raise ValueError("LLM client is required for page observation")
 
             # Create a browser-use compatible LLM adapter
-            llm_adapter = BrowserUseLLMAdapter(self.llm_client)
+            llm_adapter = BULLMAdapter(self.llm_client)
 
             # Create observation task
             observe_task = f"Analyze the current page and identify elements that match: {instruction}"
@@ -343,8 +198,8 @@ class WebSurferPage(BaseWebPage):
 class WebSurfer(BaseWebSurfer):
     """Web surfer implementation using browser-use."""
 
-    def __init__(self, llm_client=None):
-        self.llm_client = llm_client
+    def __init__(self):
+        self.llm_client: BaseLLMClient = get_llm_client()
         self.browser_session = None
         self._browser = None
 
@@ -400,7 +255,7 @@ class WebSurfer(BaseWebSurfer):
                 await self.launch(headless=kwargs.get("headless", True))
 
             # Create browser-use compatible LLM adapter
-            llm_adapter = BrowserUseLLMAdapter(self.llm_client)
+            llm_adapter = BULLMAdapter(self.llm_client)
 
             # Create browser-use agent
             browser_use_agent = Agent(

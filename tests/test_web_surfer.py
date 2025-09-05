@@ -2,7 +2,7 @@
 """
 Unit tests for WebSurfer implementation.
 
-This test suite covers both unit tests (with mocked dependencies) 
+This test suite covers both unit tests (with mocked dependencies)
 and integration tests (with actual browser-use library).
 """
 

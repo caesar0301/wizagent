@@ -2,8 +2,8 @@
 PYTHON = python3
 POETRY = poetry
 PYTEST = pytest
-PYTHON_MODULES = cogents_wiz tests examples
-COVERAGE_MODULES = cogents_wiz
+PYTHON_MODULES = wizagent tests examples
+COVERAGE_MODULES = wizagent
 TEST_DIR = tests
 LINE_LENGTH = 120
 
