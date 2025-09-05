@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List
 
 from wizagent.llm_adapter import BaseLLMClient
-from wizagent.memu.config.markdown_config import get_config_manager
+from wizagent.memory.memu.config.markdown_config import get_config_manager
 
 from .actions import ACTION_REGISTRY
 from .embeddings import create_embedding_client

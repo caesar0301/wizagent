@@ -11,7 +11,7 @@ import math
 from pathlib import Path
 from typing import Any, Dict, List
 
-from wizagent.memu.config.markdown_config import get_config_manager
+from wizagent.memory.memu.config.markdown_config import get_config_manager
 
 from .file_manager import MemoryFileManager
 

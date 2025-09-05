@@ -6,7 +6,7 @@ WizAgent is a sophisticated web automation and intelligent agent framework with 
 
 ### Key Modules
 - `wizagent.bu` - Browser automation and web interaction capabilities (includes LLM integrations)
-- `wizagent.memu` - Advanced memory management system for AI agents
+- `wizagent.memory.memu` - Advanced memory management system for AI agents
 - `wizagent.prompt` - Prompt management and templating system
 - `wizagent.web_surfer` - Web surfing and data extraction capabilities
 
@@ -94,7 +94,7 @@ wizagent/
 
 ### Core Module Details
 
-**Memory Management (`wizagent.memu`)**
+**Memory Management (`wizagent.memory.memu`)**
 - `memory/` - Advanced memory agent with function calling architecture
 - `config/` - Memory category configuration and prompt templates
 - `actions/` - Individual memory operation modules (add, link, cluster, etc.)
@@ -181,7 +181,7 @@ python -m cogents_core.example
 from wizagent.llm_adapter import get_llm_client
 
 # Memory management
-from wizagent.memu import MemoryAgent, get_default_embedding_client
+from wizagent.memory.memu import MemoryAgent, get_default_embedding_client
 
 # Prompt management
 from wizagent.prompt import Prompt, Message
@@ -211,7 +211,7 @@ response = client.chat_completion([
 ])
 
 # Memory Agent usage
-from wizagent.memu import MemoryAgent
+from wizagent.memory.memu import MemoryAgent
 
 memory_agent = MemoryAgent(
     agent_id="my_agent",

@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from wizagent.llm_adapter import get_llm_client_memory_compatible
-from wizagent.memu import MemoryAgent
+from wizagent.memory.memu import MemoryAgent
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

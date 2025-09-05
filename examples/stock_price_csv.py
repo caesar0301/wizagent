@@ -12,9 +12,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+from cogents_core.llm.prompt import PromptManager
+
 from wizagent.bu import Agent
 from wizagent.llm_adapter import BULLMAdapter
-from wizagent.prompt.prompt import PromptManager
 
 template_dir = os.path.join(Path(__file__).parent.parent, "wizagent", "prompt_template")
 manager = PromptManager(template_dirs=[str(template_dir)])

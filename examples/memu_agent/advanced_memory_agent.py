@@ -22,7 +22,7 @@ from typing import Dict, List
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from wizagent.llm_adapter import get_llm_client_memory_compatible
-from wizagent.memu import MemoryAgent
+from wizagent.memory.memu import MemoryAgent
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -173,27 +173,28 @@ def demonstrate_advanced_features(memory_agent: MemoryAgent) -> None:
         # Create sample memory items for clustering
         sample_conversation = "USER: Hi Alice! How was your weekend?\nASSISTANT: It was great! I went hiking with some friends and tried a new restaurant downtown."
         sample_memory_items = [
+            {"memory_id": "mem_001", "content": "Alice enjoys hiking on weekends", "mentioned_at": "2024-01-15"},
             {
-                "memory_id": "mem_001",
-                "content": "Alice enjoys hiking on weekends",
-                "mentioned_at": "2024-01-15"
-            },
-            {
-                "memory_id": "mem_002", 
+                "memory_id": "mem_002",
                 "content": "Alice likes trying new restaurants with friends",
-                "mentioned_at": "2024-01-15"
-            }
+                "mentioned_at": "2024-01-15",
+            },
         ]
-        
-        cluster_result = memory_agent.call_function("cluster_memories", {
-            "character_name": "Alice",
-            "conversation_content": sample_conversation,
-            "new_memory_items": sample_memory_items
-        })
+
+        cluster_result = memory_agent.call_function(
+            "cluster_memories",
+            {
+                "character_name": "Alice",
+                "conversation_content": sample_conversation,
+                "new_memory_items": sample_memory_items,
+            },
+        )
         if cluster_result.get("success"):
             updated_clusters = cluster_result.get("updated_clusters", [])
             new_clusters = cluster_result.get("new_clusters", [])
-            print(f"   ✅ Successfully processed clustering - Updated: {len(updated_clusters)}, New: {len(new_clusters)}")
+            print(
+                f"   ✅ Successfully processed clustering - Updated: {len(updated_clusters)}, New: {len(new_clusters)}"
+            )
             if updated_clusters:
                 print(f"     • Updated clusters: {', '.join(updated_clusters[:3])}")
             if new_clusters:
@@ -232,9 +233,9 @@ def demonstrate_advanced_features(memory_agent: MemoryAgent) -> None:
             tom_result = memory_agent.call_function(
                 "run_theory_of_mind",
                 {
-                    "character_name": "Alice", 
+                    "character_name": "Alice",
                     "conversation_text": conversation_text,
-                    "activity_items": activity_result.get("memory_items", [])
+                    "activity_items": activity_result.get("memory_items", []),
                 },
             )
 

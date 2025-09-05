@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Set
 
-from wizagent.memu.config.markdown_config import get_config_manager
+from wizagent.memory.memu.config.markdown_config import get_config_manager
 
 logger = logging.getLogger(__name__)
 
