@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 # Import prompt module
-from cogents_wiz.prompt.prompt import PromptLoader, PromptManager, PromptTemplate, TemplateEngine, create_simple_prompt
+from wizagent.prompt.prompt import PromptLoader, PromptManager, PromptTemplate, TemplateEngine, create_simple_prompt
 
 
 class PromptExamples:
