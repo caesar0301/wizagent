@@ -1,15 +1,14 @@
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-from cogents_core.base.base_websurfer import BaseWebPage, BaseWebSurfer, ObserveResult
-from cogents_core.typing_compat import override
+from cogents_tools.integrations.utils.llm_adapter import BaseLLMClient, BULLMAdapter, get_llm_client
 from pydantic import BaseModel
 
-from .llm_adapter import BaseLLMClient, BULLMAdapter, get_llm_client
+from .base import BaseWebPage, BaseWebSurfer, ObserveResult
 
 try:
-    from wizagent.bu import Agent, BrowserSession, Tools
-    from wizagent.bu.agent.views import AgentSettings
+    from cogents_tools.integrations.bu import Agent, BrowserSession, Tools
+    from cogents_tools.integrations.bu.agent.views import AgentSettings
 except ImportError as e:
     raise ImportError(f"Failed to import browser-use components: {e}")
 
@@ -24,12 +23,11 @@ class WebSurferPage(BaseWebPage):
         self.llm_client: BaseLLMClient = get_llm_client()
         self.tools = Tools()
 
-    @override
     async def navigate(self, url: str, **kwargs) -> None:
         """Navigates to the specified URL."""
         try:
             # Navigate using browser session event system
-            from wizagent.bu.browser.events import NavigateToUrlEvent
+            from cogents_tools.integrations.bu.browser.events import NavigateToUrlEvent
 
             event = self.browser_session.event_bus.dispatch(NavigateToUrlEvent(url=url))
             await event
@@ -40,7 +38,6 @@ class WebSurferPage(BaseWebPage):
             logger.error(f"Failed to navigate to {url}: {e}")
             raise
 
-    @override
     async def act(self, instruction: str, observe_results: Optional[ObserveResult] = None, **kwargs) -> Any:
         """
         Executes an action on the page using natural language.
@@ -74,7 +71,6 @@ class WebSurferPage(BaseWebPage):
             logger.error(f"Failed to execute action '{instruction}': {e}")
             raise
 
-    @override
     async def extract(
         self, instruction: str, schema: Union[Dict, BaseModel], selector: Optional[str] = None, **kwargs
     ) -> Union[Dict, BaseModel]:
@@ -141,7 +137,6 @@ class WebSurferPage(BaseWebPage):
             logger.error(f"Failed to extract data with instruction '{instruction}': {e}")
             raise
 
-    @override
     async def observe(self, instruction: str, with_actions: bool = True, **kwargs) -> List[ObserveResult]:
         """
         Discovers available actions or elements on the page based on a natural language query.
@@ -203,7 +198,6 @@ class WebSurfer(BaseWebSurfer):
         self.browser_session = None
         self._browser = None
 
-    @override
     async def launch(self, headless: bool = True, browser_type: str = "chromium", **kwargs) -> BaseWebPage:
         """
         Launches a new browser instance and returns a BaseWebPage.
@@ -227,7 +221,6 @@ class WebSurfer(BaseWebSurfer):
             logger.error(f"Failed to launch browser: {e}")
             raise
 
-    @override
     async def close(self):
         """Closes the browser instance."""
         try:
@@ -240,7 +233,6 @@ class WebSurfer(BaseWebSurfer):
             logger.error(f"Failed to close browser: {e}")
             raise
 
-    @override
     async def agent(self, prompt: str, **kwargs) -> "Agent":
         """
         Creates an autonomous agent that can execute complex web workflows.

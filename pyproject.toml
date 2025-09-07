@@ -17,41 +17,15 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 packages = [{include = "wizagent"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
-pydantic = "^2.0.0"
-python-dotenv = "^1.1.1"
-cogents-core = "^0.1.5,<0.2.0"
-aiofiles = "^24.1.0"
-aiohttp = "^3.12.15"
-anyio = "^4.9.0"
-httpx = "^0.28.1"
-portalocker = "^2.7.0,<3.0.0"
-posthog = "^3.7.0"
-pyobjc = "^11.0"
-screeninfo = "^0.8.1"
-uuid7 = "^0.1.0"
-authlib = "^1.6.0"
-anthropic = "^0.58.2,<1.0.0"
-groq = "^0.30.0"
-google-api-core = "^2.25.0"
-google-genai = "^1.29.0,<2.0.0"
-google-api-python-client = "^2.174.0"
-google-auth = "^2.40.3"
-google-auth-oauthlib = "^1.2.2"
-pypdf = "^5.7.0"
-cdp-use = "^1.4.0"
-markdown-pdf = "^1.5"
-html2text = "^2025.4.15"
-pillow = "^11.2.1"
-isort = "^6.0.1"
-black = "^25.1.0"
+python = "^3.12.6"
+cogents-core = "^0.1.8,<0.2.0"
+cogents-tools = {version = "^0.1.2,<0.2.0", extras = ["all"]}
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.2,<9"
