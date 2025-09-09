@@ -1,47 +1,55 @@
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.poetry]
+[project]
 name = "wizagent"
 version = "0.1.0"
 description = "Surfing the web in wisdom"
 readme = "README.md"
-license = "MIT"
-authors = ["Xiaming Chen <chenxm35@gmail.com>"]
-maintainers = ["Xiaming Chen <chenxm35@gmail.com>"]
+license = {text = "MIT"}
+authors = [
+    {name = "Xiaming Chen", email = "chenxm35@gmail.com"}
+]
+maintainers = [
+    {name = "Xiaming Chen", email = "chenxm35@gmail.com"}
+]
 keywords = ["agents", "information retrieval", "web search"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-packages = [{include = "wizagent"}]
+requires-python = ">=3.12.6"
+dependencies = [
+    "cogents-core>=0.1.9,<0.2.0",
+    "cogents-tools>=0.1.5,<0.2.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.12.6"
-cogents-core = "^0.1.8,<0.2.0"
-cogents-tools = {version = "^0.1.2,<0.2.0", extras = ["all"]}
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2,<9",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=1.1.0",
+    "pytest-tornasync>=0.6.0.post2",
+    "pytest-trio>=0.8.0",
+    "pytest-twisted>=1.14.3",
+    "twisted>=25.5.0",
+    "black>=25.1.0",
+    "isort>=6.0.1",
+    "flake8>=7.3.0",
+    "autoflake>=2.3.1",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = ">=8.2,<9"
-pytest-cov = "^4.0.0"
-pytest-asyncio = "^1.1.0"
-pytest-tornasync = "^0.6.0.post2"
-pytest-trio = "^0.8.0"
-pytest-twisted = "^1.14.3"
-twisted = "^25.5.0"
-black = "^25.1.0"
-isort = "^6.0.1"
-flake8 = "^7.3.0"
-autoflake = "^2.3.1"
-
-[tool.poetry.urls]
+[project.urls]
 Homepage = "https://github.com/mirasurf/wizagent"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["wizagent*"]
 
 [tool.black]
 line-length = 120
