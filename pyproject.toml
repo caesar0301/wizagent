@@ -25,8 +25,11 @@ classifiers = [
 ]
 requires-python = ">=3.12.6"
 dependencies = [
-    "cogents-core>=0.1.9,<0.2.0",
-    "cogents-tools>=0.1.6,<0.2.0",
+    "pydantic>=2.11.9",
+    "cogents-core>=0.1.10,<0.2.0",
+    "google-genai>=1.29.0,<2.0.0",
+    "langchain-tavily>=0.2.11",
+    "ddgs>=9.5.5",
 ]
 
 [project.optional-dependencies]
@@ -46,6 +49,10 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/mirasurf/wizagent"
+
+[tool.uv.extra-build-variables."llama-cpp-python"]
+CC = "gcc"
+CXX = "g++"
 
 [tool.setuptools.packages.find]
 where = ["."]
