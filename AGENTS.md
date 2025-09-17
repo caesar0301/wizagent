@@ -187,7 +187,7 @@ from wizagent.memory.memu import MemoryAgent, get_default_embedding_client
 from wizagent.prompt import Prompt, Message
 
 # Web surfing
-from wizagent.web_surfer import WebSurfer
+from wizagent.websurfer import WebSurfer
 ```
 
 ### LLM Usage Examples
@@ -203,7 +203,7 @@ from wizagent.llm_adapter import get_llm_client
 # WIZAGENT_LLM_BASE_URL=custom-endpoint (optional)
 
 # Get LLM client (automatically configured from environment)
-client = get_llm_client(instructor=True)
+client = get_llm_client(structured_output=True)
 
 # Basic chat completion
 response = client.chat_completion([

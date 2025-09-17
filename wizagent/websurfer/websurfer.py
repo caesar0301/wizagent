@@ -1,14 +1,16 @@
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-from cogents_tools.integrations.utils.llm_adapter import BaseLLMClient, BULLMAdapter, get_llm_client
+from cogents_core.llm import BaseLLMClient, get_llm_client
 from pydantic import BaseModel
+
+from wizagent.bu.llm_adapter import BaseChatModel
 
 from .base import BaseWebPage, BaseWebSurfer, ObserveResult
 
 try:
-    from cogents_tools.integrations.bu import Agent, BrowserSession, Tools
-    from wizagent.buagent.views import AgentSettings
+    from wizagent.bu import Agent, BrowserSession, Tools
+    from wizagent.bu.agent.views import AgentSettings
 except ImportError as e:
     raise ImportError(f"Failed to import browser-use components: {e}")
 
@@ -18,16 +20,19 @@ logger = logging.getLogger(__name__)
 class WebSurferPage(BaseWebPage):
     """Web page implementation using browser-use."""
 
-    def __init__(self, browser_session: BrowserSession):
+    def __init__(self, browser_session: BrowserSession, llm_client: BaseLLMClient | None = None):
         self.browser_session = browser_session
-        self.llm_client: BaseLLMClient = get_llm_client()
+        if llm_client is None:
+            self.llm_client: BaseLLMClient = get_llm_client(structured_output=True)
+        else:
+            self.llm_client = llm_client
         self.tools = Tools()
 
     async def navigate(self, url: str, **kwargs) -> None:
         """Navigates to the specified URL."""
         try:
             # Navigate using browser session event system
-            from wizagent.bubrowser.events import NavigateToUrlEvent
+            from wizagent.bu.browser.events import NavigateToUrlEvent
 
             event = self.browser_session.event_bus.dispatch(NavigateToUrlEvent(url=url))
             await event
@@ -47,13 +52,10 @@ class WebSurferPage(BaseWebPage):
             if not self.llm_client:
                 raise ValueError("LLM client is required for action execution")
 
-            # Create a browser-use compatible LLM adapter
-            llm_adapter = BULLMAdapter(self.llm_client)
-
             # Create agent for this specific action
             agent = Agent(
                 task=instruction,
-                llm=llm_adapter,
+                llm=BaseChatModel(self.llm_client),
                 browser=self.browser_session,
                 settings=AgentSettings(use_vision=True, max_failures=2, max_actions_per_step=3),
             )
@@ -81,9 +83,6 @@ class WebSurferPage(BaseWebPage):
             if not self.llm_client:
                 raise ValueError("LLM client is required for data extraction")
 
-            # Create a browser-use compatible LLM adapter
-            llm_adapter = BULLMAdapter(self.llm_client)
-
             # Prepare task instruction
             task_instruction = f"Extract data from the current page: {instruction}"
             if selector:
@@ -101,7 +100,7 @@ class WebSurferPage(BaseWebPage):
             # Create agent for extraction
             agent = Agent(
                 task=task_instruction,
-                llm=llm_adapter,
+                llm=BaseChatModel(self.llm_client),
                 browser=self.browser_session,
                 output_model_schema=output_model,
                 settings=AgentSettings(use_vision=True, max_failures=2),
@@ -145,9 +144,6 @@ class WebSurferPage(BaseWebPage):
             if not self.llm_client:
                 raise ValueError("LLM client is required for page observation")
 
-            # Create a browser-use compatible LLM adapter
-            llm_adapter = BULLMAdapter(self.llm_client)
-
             # Create observation task
             observe_task = f"Analyze the current page and identify elements that match: {instruction}"
             if with_actions:
@@ -156,7 +152,7 @@ class WebSurferPage(BaseWebPage):
             # Create agent for observation
             agent = Agent(
                 task=observe_task,
-                llm=llm_adapter,
+                llm=BaseChatModel(self.llm_client),
                 browser=self.browser_session,
                 settings=AgentSettings(
                     use_vision=True, max_failures=1, max_actions_per_step=1  # Just observe, don't act
@@ -193,8 +189,11 @@ class WebSurferPage(BaseWebPage):
 class WebSurfer(BaseWebSurfer):
     """Web surfer implementation using browser-use."""
 
-    def __init__(self):
-        self.llm_client: BaseLLMClient = get_llm_client()
+    def __init__(self, llm_client: BaseLLMClient | None = None):
+        if llm_client is None:
+            self.llm_client: BaseLLMClient = get_llm_client(structured_output=True)
+        else:
+            self.llm_client = llm_client
         self.browser_session = None
         self._browser = None
 
@@ -246,13 +245,10 @@ class WebSurfer(BaseWebSurfer):
                 # Auto-launch browser if not already launched
                 await self.launch(headless=kwargs.get("headless", True))
 
-            # Create browser-use compatible LLM adapter
-            llm_adapter = BULLMAdapter(self.llm_client)
-
             # Create browser-use agent
             browser_use_agent = Agent(
                 task=prompt,
-                llm=llm_adapter,
+                llm=BaseChatModel(self.llm_client),
                 browser=self.browser_session,
                 settings=AgentSettings(
                     use_vision=kwargs.get("use_vision", True),

@@ -31,17 +31,14 @@ from pydantic import BaseModel
 # Add project root to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
-import logging
 
 from cogents_core.llm import get_llm_client
-from cogents_core.utils import setup_logging
+from cogents_core.utils import get_logger
 
-from wizagent.web_surfer import WebSurfer
+from wizagent.websurfer import WebSurfer
 
-# Setup logging
-setup_logging()
-logger = logging.getLogger(__name__)
-llm_client = get_llm_client(provider="openrouter", instructor=True)
+logger = get_logger(__name__)
+llm_client = get_llm_client(provider="openrouter", structured_output=True)
 
 
 class QuoteData(BaseModel):
@@ -101,8 +98,6 @@ async def demo_page_interaction():
 async def demo_data_extraction():
     """Demonstrate structured data extraction."""
     logger.info("📊 Demo: Data Extraction")
-
-    llm_client = get_llm_client(provider="openrouter", instructor=True)
 
     web_surfer = WebSurfer(llm_client=llm_client)
 

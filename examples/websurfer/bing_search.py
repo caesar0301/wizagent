@@ -26,23 +26,17 @@ Usage:
 
 import argparse
 import asyncio
-import os
+import logging
 import re
 import sys
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field
-
-# Add project root to path
-sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
-
-import logging
-
 from cogents_core.llm import get_llm_client
 from cogents_core.utils import setup_logging
+from pydantic import BaseModel, Field
 
-from wizagent.web_surfer import WebSurfer
+from wizagent.websurfer import WebSurfer
 
 # Setup logging
 setup_logging()
@@ -538,7 +532,7 @@ async def perform_bing_search_and_extraction(query: str, top_k: int = 5, headles
 
     # Initialize LLM client
     try:
-        llm_client = get_llm_client(provider="openrouter", instructor=True)
+        llm_client = get_llm_client(provider="openrouter", structured_output=True)
         logger.info("✅ LLM client initialized")
     except Exception as e:
         logger.error(f"❌ Failed to initialize LLM client: {e}")

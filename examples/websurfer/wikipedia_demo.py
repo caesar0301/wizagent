@@ -18,26 +18,20 @@ Requirements:
 """
 
 import asyncio
-import os
+import logging
 import sys
 from typing import List
 
-from pydantic import BaseModel
-
-# Add project root to path
-sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
-
-import logging
-
 from cogents_core.llm import get_llm_client
 from cogents_core.utils import setup_logging
+from pydantic import BaseModel
 
-from wizagent.web_surfer import WebSurfer
+from wizagent.websurfer import WebSurfer
 
 # Setup logging
 setup_logging()
 logger = logging.getLogger(__name__)
-llm_client = get_llm_client(provider="openrouter", instructor=True)
+llm_client = get_llm_client(provider="openrouter", structured_output=True)
 
 
 class WikipediaArticle(BaseModel):
