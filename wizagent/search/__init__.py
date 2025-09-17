@@ -1,13 +1,16 @@
 from .base import BaseSearch, SearchResult, SourceItem
-from .duckduckgo_search import DuckDuckGoSearch, DuckDuckGoSearchConfig, DuckDuckGoSearchError
-from .google_genai_search import GoogleGenAISearch
-from .searxng_search import SearxNGSearch, SearxNGSearchConfig, SearxNGSearchError
-from .tavily_search import TavilySearch, TavilySearchConfig, TavilySearchError
+from .engines.duckduckgo_search import DuckDuckGoSearch, DuckDuckGoSearchConfig, DuckDuckGoSearchError
+from .engines.google_genai_search import GoogleGenAISearch
+from .engines.searxng_search import SearxNGSearch, SearxNGSearchConfig, SearxNGSearchError
+from .engines.tavily_search import TavilySearch, TavilySearchConfig, TavilySearchError
+from .wizsearch import WizSearch, WizSearchConfig, WizSearchError
 
 __all__ = [
+    # base
     "BaseSearch",
     "SearchResult",
     "SourceItem",
+    # engines
     "TavilySearch",
     "TavilySearchConfig",
     "TavilySearchError",
@@ -19,4 +22,8 @@ __all__ = [
     "SearxNGSearch",
     "SearxNGSearchConfig",
     "SearxNGSearchError",
+    # wizsearch
+    "WizSearch",
+    "WizSearchConfig",
+    "WizSearchError",
 ]

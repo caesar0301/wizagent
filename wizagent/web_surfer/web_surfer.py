@@ -8,7 +8,7 @@ from .base import BaseWebPage, BaseWebSurfer, ObserveResult
 
 try:
     from cogents_tools.integrations.bu import Agent, BrowserSession, Tools
-    from cogents_tools.integrations.bu.agent.views import AgentSettings
+    from wizagent.buagent.views import AgentSettings
 except ImportError as e:
     raise ImportError(f"Failed to import browser-use components: {e}")
 
@@ -27,7 +27,7 @@ class WebSurferPage(BaseWebPage):
         """Navigates to the specified URL."""
         try:
             # Navigate using browser session event system
-            from cogents_tools.integrations.bu.browser.events import NavigateToUrlEvent
+            from wizagent.bubrowser.events import NavigateToUrlEvent
 
             event = self.browser_session.event_bus.dispatch(NavigateToUrlEvent(url=url))
             await event

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wizagent"
-version = "0.1.0"
+version = "0.1.1"
 description = "Surfing the web in wisdom"
 readme = "README.md"
 license = {text = "MIT"}
@@ -33,6 +33,17 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+browser-use = [
+    "screeninfo>=0.8.1",
+    "uuid7>=0.1.0",
+    "authlib>=1.6.0",
+    "pypdf>=5.7.0",
+    "cdp-use>=1.4.0",
+    "markdown-pdf>=1.5",
+    "html2text>=2025.4.15",
+    "psutil>=7.0.0",
+]
+
 dev = [
     "pytest>=8.2,<9",
     "pytest-cov>=4.0.0",
