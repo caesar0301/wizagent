@@ -20,7 +20,6 @@ from wizagent.bu.llm_adapter import (
     ContentImage,
     ContentText,
     UserMessage,
-    get_llm_client_bu_compatible,
 )
 
 load_dotenv()
@@ -170,7 +169,9 @@ class Agent(Generic[Context, AgentStructuredOutput]):
         **kwargs,
     ):
         if llm is None:
-            llm = get_llm_client_bu_compatible()
+            from cogents_core.llm import get_llm_client
+
+            llm = BaseChatModel(get_llm_client(structured_output=True))
 
         if page_extraction_llm is None:
             page_extraction_llm = llm

@@ -32,8 +32,6 @@ import time
 from pathlib import Path
 from typing import Any
 
-from wizagent.bu.llm_adapter import get_llm_client_bu_compatible
-
 try:
     import psutil
 
@@ -511,7 +509,9 @@ class BrowserUseServer:
         """Run an autonomous agent task."""
         logger.debug(f"Running agent task: {task}")
 
-        llm = get_llm_client_bu_compatible()
+        from cogents_core.llm import get_llm_client
+
+        llm = BaseChatModel(get_llm_client(structured_output=True))
 
         # Get profile config and merge with tool parameters
         profile_config = get_default_profile(self.config)

@@ -11,7 +11,7 @@ from pydantic import BaseModel
 logger = logging.getLogger(__name__)
 
 import dotenv
-from cogents_core.llm import BaseLLMClient, get_llm_client
+from cogents_core.llm import BaseLLMClient
 
 dotenv.load_dotenv()
 
@@ -192,16 +192,3 @@ class BaseChatModel(Protocol):
         except Exception as e:
             logger.error(f"Error in LLM adapter: {e}")
             raise
-
-
-def get_llm_client_bu_compatible(**kwargs) -> BaseChatModel:
-    """
-    Get an LLM client with browser-use compatibility
-
-    Args:
-        **kwargs: Additional arguments to pass to the LLM client
-
-    Returns:
-        BaseChatModel: Configured LLM client adapted for browser-use
-    """
-    return BaseChatModel(get_llm_client(structured_output=True, **kwargs))

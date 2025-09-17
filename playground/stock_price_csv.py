@@ -2,9 +2,9 @@ import asyncio
 import os
 import sys
 
-from cogents_tools.integrations.bu import Agent, BrowserProfile, ProxySettings
-from cogents_tools.integrations.llm import get_llm_client_bu_compatible
 from dotenv import load_dotenv
+
+from wizagent.bu import Agent, BrowserProfile, ProxySettings
 
 load_dotenv()
 
@@ -26,7 +26,6 @@ async def main():
 
     agent = Agent(
         task=task,
-        llm=get_llm_client_bu_compatible(),
         max_steps=50,
         browser_profile=browser_profile,
     )
