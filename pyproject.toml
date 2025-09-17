@@ -23,13 +23,13 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-requires-python = ">=3.12.6"
+requires-python = ">=3.11.5"
 dependencies = [
     "pydantic>=2.11.9",
     "cogents-core>=0.1.10,<0.2.0",
     "google-genai>=1.29.0,<2.0.0",
     "langchain-tavily>=0.2.11",
-    "ddgs>=9.5.5",
+    "ddgs>=9.4.0",
 ]
 
 [project.optional-dependencies]
@@ -42,6 +42,10 @@ browser-use = [
     "markdown-pdf>=1.5",
     "html2text>=2025.4.15",
     "psutil>=7.0.0",
+]
+
+crawlers = [
+    "crawl4ai>=0.7.4",
 ]
 
 dev = [
