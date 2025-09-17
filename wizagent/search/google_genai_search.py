@@ -16,8 +16,8 @@ from .base import BaseSearch, SearchResult, SourceItem
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "GoogleAISearch",
-    "GoogleAISearchError",
+    "GoogleGenAISearch",
+    "GoogleGenAISearchError",
 ]
 
 web_searcher_instructions = """Conduct targeted Google Searches to gather the most recent, credible information about "{research_topic}" and synthesize it into a verifiable text artifact.
@@ -36,11 +36,11 @@ Research Topic:
 """
 
 
-class GoogleAISearchError(Exception):
+class GoogleGenAISearchError(Exception):
     """Base exception for Google AI Search errors."""
 
 
-class GoogleAISearch(BaseSearch):
+class GoogleGenAISearch(BaseSearch):
     """
     Google AI Search client for web research functionality.
     """
