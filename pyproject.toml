@@ -30,7 +30,7 @@ dependencies = [
     "google-genai>=1.29.0,<2.0.0",
     "langchain-tavily>=0.2.11",
     "ddgs>=9.4.0",
-    "tarzi>=0.1.5",
+    "tarzi>=0.1.6,<0.2",
 ]
 
 [project.optional-dependencies]

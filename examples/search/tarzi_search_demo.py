@@ -14,13 +14,10 @@ def demo_basic_search():
 
     try:
         # Initialize with custom configuration for better timeout
-        config = TarziSearchConfig()
-        search = TarziSearch(config=config)
+        search = TarziSearch(config=TarziSearchConfig())
 
         # Perform a basic search
-        query = "artificial intelligence latest developments"
-        print(f"\nSearching for: '{query}'")
-
+        query = "甲骨文 星际之门"
         result = search.search(query)
 
         print(f"Response time: {result.response_time:.2f}s")

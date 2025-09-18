@@ -33,6 +33,7 @@ class SearchEngineRegistry:
             ("wizagent.search.engines.tavily_search", "TavilySearch", "TavilySearchConfig"),
             ("wizagent.search.engines.google_genai_search", "GoogleAISearch", None),
             ("wizagent.search.engines.searxng_search", "SearxNGSearch", "SearxNGSearchConfig"),
+            ("wizagent.search.engines.tarzi_search", "TarziSearch", "TarziSearchConfig"),
         ]
 
         for module_name, engine_class_name, config_class_name in engine_modules:
