@@ -43,6 +43,7 @@ browser-use = [
     "markdown-pdf>=1.5",
     "html2text>=2025.4.15",
     "psutil>=7.0.0",
+    "pillow>=11.3.0",
 ]
 
 crawlers = [

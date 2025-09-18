@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Wikipedia Web Surfer Demo
+Wikipedia WizAgent Demo
 
-This example demonstrates complex web interactions with Wikipedia using the WebSurfer
+This example demonstrates complex web interactions with Wikipedia using the WizAgent
 implementation with browser-use integration.
 
 Features demonstrated:
@@ -26,7 +26,7 @@ from cogents_core.llm import get_llm_client
 from cogents_core.utils import setup_logging
 from pydantic import BaseModel
 
-from wizagent.websurfer import WebSurfer
+from wizagent.agent.wizagent import WizAgent
 
 # Setup logging
 setup_logging()
@@ -47,41 +47,36 @@ async def demo_wikipedia_search():
     """Demonstrate Wikipedia search functionality."""
     logger.info("🔍 Demo: Wikipedia Search")
 
-    web_surfer = WebSurfer(llm_client=llm_client)
+    wiz_agent = WizAgent(llm=llm_client)
 
     try:
-        page = await web_surfer.launch(headless=False)
-
-        # Navigate to Wikipedia
-        await page.navigate("https://en.wikipedia.org")
-        logger.info("✅ Successfully navigated to Wikipedia")
-
-        # Search for "Artificial Intelligence"
-        search_result = await page.act("Search for 'Artificial Intelligence' using the search box")
-        logger.info(f"✅ Search completed: {search_result}")
+        # Navigate to Wikipedia and search for "Artificial Intelligence"
+        result = await wiz_agent.navigate_and_act(
+            url="https://en.wikipedia.org",
+            instruction="Search for 'Artificial Intelligence' using the search box",
+            headless=False,
+            use_vision=True,
+        )
+        logger.info(f"✅ Search completed: {result}")
 
         # Wait a moment for the page to load
         await asyncio.sleep(2)
 
-    finally:
-        await web_surfer.close()
+    except Exception as e:
+        logger.error(f"❌ Search demo failed: {e}")
+        raise
 
 
 async def demo_wikipedia_article_extraction():
     """Demonstrate extracting structured data from Wikipedia articles."""
     logger.info("📊 Demo: Wikipedia Article Extraction")
 
-    web_surfer = WebSurfer(llm_client=llm_client)
+    wiz_agent = WizAgent(llm=llm_client)
 
     try:
-        page = await web_surfer.launch(headless=False)
-
-        # Navigate directly to an AI article
-        await page.navigate("https://en.wikipedia.org/wiki/Machine_learning")
-        logger.info("✅ Successfully navigated to Machine Learning article")
-
-        # Extract structured information from the article
-        article_data = await page.extract(
+        # Extract structured information from the Machine Learning article
+        article_data = await wiz_agent.navigate_and_extract(
+            url="https://en.wikipedia.org/wiki/Machine_learning",
             instruction="Extract the article title, first paragraph summary, main section headings, and categories",
             schema=WikipediaArticle,
         )
@@ -95,96 +90,105 @@ async def demo_wikipedia_article_extraction():
         else:
             logger.info(f"  Raw data: {article_data}")
 
-    finally:
-        await web_surfer.close()
+    except Exception as e:
+        logger.error(f"❌ Article extraction demo failed: {e}")
+        raise
 
 
 async def demo_wikipedia_navigation():
     """Demonstrate navigating between Wikipedia articles."""
     logger.info("🧭 Demo: Wikipedia Navigation")
 
-    web_surfer = WebSurfer(llm_client=llm_client)
+    wiz_agent = WizAgent(llm=llm_client)
 
     try:
-        page = await web_surfer.launch(headless=False)
-
-        # Start at Python programming language article
-        await page.navigate("https://en.wikipedia.org/wiki/Python_(programming_language)")
-        logger.info("✅ Started at Python programming language article")
-
-        # Click on a link to explore related content
-        navigation_result = await page.act(
-            "Click on the first link in the 'See also' section or find a link related to 'machine learning' or 'data science'"
+        # Start at Python programming language article and navigate to related content
+        result = await wiz_agent.navigate_and_act(
+            url="https://en.wikipedia.org/wiki/Python_(programming_language)",
+            instruction="Click on the first link in the 'See also' section or find a link related to 'machine learning' or 'data science'",
+            headless=False,
+            use_vision=True,
         )
-        logger.info(f"✅ Navigation result: {navigation_result}")
+        logger.info(f"✅ Navigation result: {result}")
 
         # Wait for navigation
         await asyncio.sleep(2)
 
-        # Extract information about the new page
-        page_info = await page.act("Tell me what Wikipedia article we're currently viewing and provide a brief summary")
+        # Get information about the new page
+        page_info = await wiz_agent.navigate_and_act(
+            url="https://en.wikipedia.org/wiki/Python_(programming_language)",
+            instruction="Tell me what Wikipedia article we're currently viewing and provide a brief summary",
+            headless=False,
+            use_vision=True,
+        )
         logger.info(f"✅ Current page info: {page_info}")
 
-    finally:
-        await web_surfer.close()
+    except Exception as e:
+        logger.error(f"❌ Navigation demo failed: {e}")
+        raise
 
 
 async def demo_wikipedia_comparison():
     """Demonstrate comparing information from multiple Wikipedia articles."""
     logger.info("⚖️ Demo: Wikipedia Article Comparison")
 
-    web_surfer = WebSurfer(llm_client=llm_client)
+    wiz_agent = WizAgent(llm=llm_client)
 
     try:
-        page = await web_surfer.launch(headless=False)
-
         # Visit first article: Machine Learning
-        await page.navigate("https://en.wikipedia.org/wiki/Machine_learning")
-        ml_info = await page.act(
-            "Extract the key definition and main applications of machine learning from this article"
+        ml_info = await wiz_agent.navigate_and_act(
+            url="https://en.wikipedia.org/wiki/Machine_learning",
+            instruction="Extract the key definition and main applications of machine learning from this article",
+            headless=False,
+            use_vision=True,
         )
         logger.info(f"✅ Machine Learning info: {ml_info}")
 
         # Visit second article: Deep Learning
-        await page.navigate("https://en.wikipedia.org/wiki/Deep_learning")
-        dl_info = await page.act("Extract the key definition and main applications of deep learning from this article")
+        dl_info = await wiz_agent.navigate_and_act(
+            url="https://en.wikipedia.org/wiki/Deep_learning",
+            instruction="Extract the key definition and main applications of deep learning from this article",
+            headless=False,
+            use_vision=True,
+        )
         logger.info(f"✅ Deep Learning info: {dl_info}")
 
         # Compare the two
         logger.info("📝 Comparison completed - in a real application, you could now analyze the differences")
 
-    finally:
-        await web_surfer.close()
+    except Exception as e:
+        logger.error(f"❌ Comparison demo failed: {e}")
+        raise
 
 
 async def demo_wikipedia_autonomous_research():
     """Demonstrate autonomous research on Wikipedia."""
     logger.info("🤖 Demo: Autonomous Wikipedia Research")
 
-    web_surfer = WebSurfer(llm_client=llm_client)
+    wiz_agent = WizAgent(llm=llm_client)
 
     try:
         # Create autonomous agent for Wikipedia research
-        agent = await web_surfer.agent(
-            prompt="""Go to Wikipedia and research 'Natural Language Processing'. 
+        result = await wiz_agent.use_browser(
+            instruction="""Go to Wikipedia and research 'Natural Language Processing'. 
             Find the main article, read the introduction, and then explore one related topic 
             by clicking on a relevant link. Summarize what you learned about both topics.""",
+            headless=False,
             use_vision=True,
             max_failures=2,
             max_actions_per_step=3,
         )
 
-        # Run the research agent
-        result = await agent.run()
         logger.info(f"✅ Research completed: {result}")
 
-    finally:
-        await web_surfer.close()
+    except Exception as e:
+        logger.error(f"❌ Autonomous research demo failed: {e}")
+        raise
 
 
 async def run_wikipedia_demos():
     """Run all Wikipedia demonstration functions."""
-    logger.info("🚀 Starting Wikipedia WebSurfer Demo")
+    logger.info("🚀 Starting Wikipedia WizAgent Demo")
 
     try:
         # Run demos with delays to manage rate limits
