@@ -8,10 +8,18 @@ type relationships using a two-pass parsing approach.
 
 import re
 import yaml
-from typing import Any, Dict, List, Optional, Union, get_args, get_origin
-from datetime import datetime
-from pydantic import BaseModel, Field, create_model
+from typing import (
+    Any, Dict, List, Optional, Union, Tuple, Set, FrozenSet,
+    Sequence, Mapping, MutableMapping, MutableSequence, MutableSet,
+    Iterable, Iterator, Collection, Container, Callable, Awaitable,
+    Coroutine, AsyncIterable, AsyncIterator, AsyncGenerator, Generator,
+    get_args, get_origin
+)
+from datetime import datetime, date, time, timedelta
+from decimal import Decimal
+from uuid import UUID
 from pathlib import Path
+from pydantic import BaseModel, Field, create_model
 
 
 class GemParserError(Exception):
@@ -36,13 +44,66 @@ class GemParser:
         """Initialize the gem parser with default type mappings."""
         self.dynamic_models: Dict[str, type] = {}
         self.type_map = {
+            # Basic Python types
             'str': str,
             'int': int,
             'float': float,
             'bool': bool,
+            'bytes': bytes,
+            'bytearray': bytearray,
+            
+            # Special typing types
             'Any': Any,
+            
+            # Generic collection types from typing
+            'List': List,
+            'Dict': Dict,
+            'Set': Set,
+            'FrozenSet': FrozenSet,
+            'Tuple': Tuple,
+            'Optional': Optional,
+            'Union': Union,
+            
+            # Abstract base types from typing (avoiding common model name conflicts)
+            'Sequence': Sequence,
+            'MutableSequence': MutableSequence,
+            'Mapping': Mapping,
+            'MutableMapping': MutableMapping,
+            'MutableSet': MutableSet,
+            'Iterable': Iterable,
+            'Iterator': Iterator,
+            # Note: 'Container', 'Collection' are omitted to avoid
+            # conflicts with common model names. Users can still access them via
+            # custom type mappings if needed.
+            
+            # Function types
+            'Callable': Callable,
+            
+            # Async types
+            'Awaitable': Awaitable,
+            'Coroutine': Coroutine,
+            'AsyncIterable': AsyncIterable,
+            'AsyncIterator': AsyncIterator,
+            'AsyncGenerator': AsyncGenerator,
+            'Generator': Generator,
+            
+            # Date and time types
             'datetime': datetime,
+            'date': date,
+            'time': time,
+            'timedelta': timedelta,
             'timestamp': int,  # Common representation for timestamps
+            
+            # Other useful types
+            'Decimal': Decimal,
+            'UUID': UUID,
+            'Path': Path,
+            
+            # Type aliases for convenience
+            'string': str,
+            'integer': int,
+            'number': float,
+            'boolean': bool,
         }
         self._dependency_graph: Dict[str, set] = {}
     
@@ -54,6 +115,33 @@ class GemParser:
             python_type: The corresponding Python type
         """
         self.type_map[type_name] = python_type
+    
+    def add_typing_types(self, *type_names: str) -> None:
+        """Add typing module types to the type map.
+        
+        This method allows adding typing types that were excluded from the default
+        type_map to avoid conflicts with common model names.
+        
+        Args:
+            type_names: Names of types from the typing module to add
+        """
+        typing_types = {
+            'Sequence': Sequence,
+            'MutableSequence': MutableSequence,
+            'Mapping': Mapping,
+            'MutableMapping': MutableMapping,
+            'MutableSet': MutableSet,
+            'Iterable': Iterable,
+            'Iterator': Iterator,
+            'Collection': Collection,
+            'Container': Container,
+        }
+        
+        for type_name in type_names:
+            if type_name in typing_types:
+                self.type_map[type_name] = typing_types[type_name]
+            else:
+                raise ValueError(f"Unknown typing type: {type_name}")
     
     def parse_from_yaml_string(self, yaml_content: str) -> Dict[str, type]:
         """Parse YAML string and return dynamically created Pydantic models.
@@ -130,10 +218,14 @@ class GemParser:
         
         # Pass 3: Update forward references for all models
         # We need to rebuild models in dependency order to resolve forward references
+        # Create a clean global namespace that prioritizes our models over typing module names
+        global_ns = self.dynamic_models.copy()
+        
         for model_class in self.dynamic_models.values():
             try:
                 # Update the global namespace with all our models for forward reference resolution
-                model_class.model_rebuild(global_ns=self.dynamic_models)
+                # Use our models namespace which takes precedence over any typing module names
+                model_class.model_rebuild(global_ns=global_ns)
             except Exception:
                 # Some models might not need forward ref updates
                 pass
@@ -249,10 +341,49 @@ class GemParser:
             from pydantic import ConfigDict
             
             # Check if any field uses a custom type that might need arbitrary_types_allowed
+            def needs_arbitrary_types_check(field_type):
+                """Check if a field type needs arbitrary_types_allowed."""
+                # If it's a string (forward reference), it doesn't need arbitrary types
+                if isinstance(field_type, str):
+                    return False
+                
+                # If it has an __origin__, it's a generic type - check its args
+                if hasattr(field_type, '__origin__'):
+                    origin = field_type.__origin__
+                    # Standard typing generics don't need arbitrary types
+                    if origin in [list, dict, set, frozenset, tuple, type(None)]:
+                        return False
+                    # Check if the origin itself needs arbitrary types
+                    if hasattr(origin, '__module__') and origin.__module__ == 'typing':
+                        # Most typing module generics are fine
+                        return False
+                    # Check arguments recursively
+                    if hasattr(field_type, '__args__'):
+                        return any(needs_arbitrary_types_check(arg) for arg in field_type.__args__)
+                    return False
+                
+                # Basic Python types don't need arbitrary types (except bytearray)
+                if field_type in [str, int, float, bool, bytes, type(None)]:
+                    return False
+                # bytearray needs arbitrary types in Pydantic
+                if field_type == bytearray:
+                    return True
+                
+                # Standard library types that are usually fine
+                if hasattr(field_type, '__module__'):
+                    module = field_type.__module__
+                    if module in ['builtins', 'datetime', 'decimal', 'uuid', 'pathlib', 'typing']:
+                        return False
+                
+                # Dynamic models don't need arbitrary types
+                if field_type in self.dynamic_models.values():
+                    return False
+                
+                # If we get here, it might need arbitrary types
+                return True
+            
             needs_arbitrary_types = any(
-                hasattr(field_type, '__name__') and field_type not in [str, int, float, bool, Any, datetime]
-                and not hasattr(field_type, '__origin__')  # Not a generic type like List, Dict, etc.
-                and field_type not in self.dynamic_models.values()
+                needs_arbitrary_types_check(field_type)
                 for field_type, _ in field_definitions.values()
             )
             
@@ -283,45 +414,13 @@ class GemParser:
         """
         type_str = type_str.strip()
         
-        # Handle List types
-        if type_str.startswith('List[') and type_str.endswith(']'):
-            inner_type_str = type_str[5:-1]
-            inner_type = self._parse_type(inner_type_str)
-            # If inner type is a forward reference (string), keep it as string
-            if isinstance(inner_type, str):
-                return f"List[{inner_type}]"
-            return List[inner_type]
-        
-        # Handle Optional types
-        if type_str.startswith('Optional[') and type_str.endswith(']'):
-            inner_type_str = type_str[9:-1]
-            inner_type = self._parse_type(inner_type_str)
-            if isinstance(inner_type, str):
-                return f"Optional[{inner_type}]"
-            return Optional[inner_type]
-        
-        # Handle Union types
-        if type_str.startswith('Union[') and type_str.endswith(']'):
-            inner_types_str = type_str[6:-1]
-            inner_types = [self._parse_type(t.strip()) for t in inner_types_str.split(',')]
-            # If any inner type is a forward reference, return the whole thing as string
-            if any(isinstance(t, str) for t in inner_types):
-                return type_str
-            return Union[tuple(inner_types)]
-        
-        # Handle Dict types
-        if type_str.startswith('Dict[') and type_str.endswith(']'):
-            inner_types_str = type_str[5:-1]
-            key_type_str, value_type_str = [t.strip() for t in inner_types_str.split(',', 1)]
-            key_type = self._parse_type(key_type_str)
-            value_type = self._parse_type(value_type_str)
-            # If either type is a forward reference, return the whole thing as string
-            if isinstance(key_type, str) or isinstance(value_type, str):
-                return type_str
-            return Dict[key_type, value_type]
+        # Handle generic types with square brackets
+        if '[' in type_str and type_str.endswith(']'):
+            return self._parse_generic_type(type_str)
         
         # Check if it's a custom model - return as forward reference string
-        if type_str in [model_def['name'] for model_def in self._current_output_models]:
+        # This check must come BEFORE type_map to avoid conflicts with typing module names
+        if hasattr(self, '_current_output_models') and type_str in [model_def['name'] for model_def in self._current_output_models]:
             return type_str  # Return as forward reference string
         
         # Check if it's a built-in type
@@ -329,6 +428,134 @@ class GemParser:
             return self.type_map[type_str]
         
         raise TypeMappingError(f"Unknown type: {type_str}")
+    
+    def _parse_generic_type(self, type_str: str) -> Union[type, str]:
+        """Parse a generic type string like 'List[int]', 'Dict[str, int]', etc.
+        
+        Args:
+            type_str: Generic type string
+            
+        Returns:
+            Corresponding Python type or forward reference string
+        """
+        # Extract the base type and arguments
+        bracket_start = type_str.index('[')
+        base_type_str = type_str[:bracket_start]
+        args_str = type_str[bracket_start + 1:-1]
+        
+        # Get the base type
+        if base_type_str not in self.type_map:
+            raise TypeMappingError(f"Unknown generic type: {base_type_str}")
+        
+        base_type = self.type_map[base_type_str]
+        
+        # Parse arguments
+        args = self._parse_type_arguments(args_str)
+        
+        # If any argument is a forward reference, return the whole thing as string
+        if any(isinstance(arg, str) for arg in args):
+            return type_str
+        
+        # Handle different generic types
+        try:
+            if base_type == List:
+                return List[args[0]] if len(args) == 1 else List[Union[tuple(args)]]
+            elif base_type == Dict:
+                if len(args) != 2:
+                    raise TypeMappingError(f"Dict requires exactly 2 type arguments, got {len(args)}")
+                return Dict[args[0], args[1]]
+            elif base_type == Set:
+                return Set[args[0]] if len(args) == 1 else Set[Union[tuple(args)]]
+            elif base_type == FrozenSet:
+                return FrozenSet[args[0]] if len(args) == 1 else FrozenSet[Union[tuple(args)]]
+            elif base_type == Tuple:
+                return Tuple[tuple(args)] if args else Tuple[()]
+            elif base_type == Optional:
+                if len(args) != 1:
+                    raise TypeMappingError(f"Optional requires exactly 1 type argument, got {len(args)}")
+                return Optional[args[0]]
+            elif base_type == Union:
+                return Union[tuple(args)] if len(args) > 1 else args[0]
+            elif base_type in [Sequence, MutableSequence, Iterable, Collection, Container]:
+                return base_type[args[0]] if len(args) == 1 else base_type[Union[tuple(args)]]
+            elif base_type in [Mapping, MutableMapping]:
+                if len(args) != 2:
+                    raise TypeMappingError(f"{base_type_str} requires exactly 2 type arguments, got {len(args)}")
+                return base_type[args[0], args[1]]
+            elif base_type == MutableSet:
+                return MutableSet[args[0]] if len(args) == 1 else MutableSet[Union[tuple(args)]]
+            elif base_type == Callable:
+                # Callable[[arg_types], return_type] or Callable[..., return_type]
+                if len(args) == 2:
+                    return Callable[args[0], args[1]]
+                else:
+                    return Callable[..., args[-1]] if args else Callable
+            elif base_type in [Generator, AsyncGenerator]:
+                # Generator[yield_type, send_type, return_type]
+                if len(args) == 3:
+                    return base_type[args[0], args[1], args[2]]
+                elif len(args) == 1:
+                    return base_type[args[0], None, None]
+                else:
+                    return base_type
+            elif base_type in [Awaitable, Coroutine, AsyncIterable, AsyncIterator]:
+                return base_type[args[0]] if len(args) == 1 else base_type
+            else:
+                # For other generic types, try to apply the arguments
+                return base_type[tuple(args)] if args else base_type
+        except (TypeError, ValueError) as e:
+            raise TypeMappingError(f"Invalid generic type construction for {type_str}: {e}")
+    
+    def _parse_type_arguments(self, args_str: str) -> List[Union[type, str]]:
+        """Parse type arguments from a string like 'str, int' or 'Dict[str, int], bool'.
+        
+        Args:
+            args_str: String containing type arguments
+            
+        Returns:
+            List of parsed types or forward reference strings
+        """
+        if not args_str.strip():
+            return []
+        
+        # Special case for empty tuple: Tuple[()]
+        if args_str.strip() == '()':
+            return []
+        
+        # Handle nested brackets by tracking bracket depth
+        args = []
+        current_arg = ""
+        bracket_depth = 0
+        paren_depth = 0
+        
+        for char in args_str:
+            if char == '[':
+                bracket_depth += 1
+                current_arg += char
+            elif char == ']':
+                bracket_depth -= 1
+                current_arg += char
+            elif char == '(':
+                paren_depth += 1
+                current_arg += char
+            elif char == ')':
+                paren_depth -= 1
+                current_arg += char
+            elif char == ',' and bracket_depth == 0 and paren_depth == 0:
+                # We've reached a top-level comma, so this argument is complete
+                arg_str = current_arg.strip()
+                if arg_str and arg_str != '()':  # Skip empty parentheses
+                    args.append(self._parse_type(arg_str))
+                current_arg = ""
+            else:
+                current_arg += char
+        
+        # Add the last argument
+        arg_str = current_arg.strip()
+        if arg_str and arg_str != '()':  # Skip empty parentheses
+            args.append(self._parse_type(arg_str))
+        
+        return args
 
 
 def parse_yaml_models(yaml_content: str, custom_types: Optional[Dict[str, type]] = None) -> Dict[str, type]:
