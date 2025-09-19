@@ -1610,18 +1610,14 @@ class DefaultActionWatchdog(BaseWatchdog):
                 session_id=session_id,
             )
 
-        if js_result.get("result", {}).get("value"):
-            self.logger.debug(f'📜 Scrolled to text: "{event.text}" (via JS)')
-            return None
+            if js_result.get("result", {}).get("value"):
+                self.logger.debug(f'📜 Scrolled to text: "{event.text}" (via JS)')
+                return None
+            else:
+                self.logger.warning(f'⚠️ Text not found: "{event.text}"')
+                raise BrowserError(f'Text not found: "{event.text}"', details={"text": event.text})
         else:
-            self.logger.warning(f'⚠️ Text not found: "{event.text}"')
-            raise BrowserError(f'Text not found: "{event.text}"', details={"text": event.text})
-
-        # If we got here and found is True, return None (success)
-        if found:
             return None
-        else:
-            raise BrowserError(f'Text not found: "{event.text}"', details={"text": event.text})
 
     async def on_GetDropdownOptionsEvent(self, event: GetDropdownOptionsEvent) -> dict[str, str]:
         """Handle get dropdown options request with CDP."""

@@ -14,7 +14,11 @@ logger = get_logger(__name__)
 
 
 class WizAgent:
-    def __init__(self, llm: BaseLLMClient, **kwargs):
+    def __init__(self, llm: BaseLLMClient | None = None, **kwargs):
+        if not llm:
+            from cogents_core.llm import get_llm_client
+
+            llm = get_llm_client(structured_output=True)
         self.llm = llm
         self.browser_session = None
 
