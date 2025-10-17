@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wizagent"
-version = "0.1.1"
+version = "0.0.2"
 description = "Surfing the web in wisdom"
 readme = "README.md"
 license = {text = "MIT"}
@@ -46,7 +46,7 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mirasurf/wizagent"
+Homepage = "https://github.com/caesar0301/wizagent"
 
 [tool.uv.extra-build-variables."llama-cpp-python"]
 CC = "gcc"

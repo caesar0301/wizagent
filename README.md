@@ -1,6 +1,6 @@
 # WizAgent
 
-[![CI](https://github.com/mirasurf/wizagent/actions/workflows/ci.yml/badge.svg)](https://github.com/mirasurf/wizagent/actions/workflows/ci.yml)
+[![CI](https://github.com/caesar0301/wizagent/actions/workflows/ci.yml/badge.svg)](https://github.com/caesar0301/wizagent/actions/workflows/ci.yml)
 [![PyPI version](https://img.shields.io/pypi/v/wizagent.svg)](https://pypi.org/project/wizagent/)
 
 **WizAgent** is a powerful, intelligent web automation and research framework that combines multi-engine web search, deep research capabilities, browser automation, and structured data extraction with advanced LLM support.
